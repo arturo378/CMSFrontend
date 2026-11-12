@@ -4,6 +4,12 @@ Chemical Management System - Frontend Application
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
+Dependency installation, `npm start`, and `npm run build` run
+`scripts/patch-material-table.js` to correct the `defaultExpanded` prop-type
+validator in material-table 1.63.0. Applying the patch also clears Webpack's
+cached dependency bundles. Restart a running development server after the
+patch is first applied.
+
 ## Available Scripts
 
 In the project directory, you can run:
