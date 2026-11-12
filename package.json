@@ -33,7 +33,10 @@
     "recharts": "^2.15.4"
   },
   "scripts": {
+    "postinstall": "node scripts/patch-material-table.js",
+    "prestart": "node scripts/patch-material-table.js",
     "start": "react-scripts start",
+    "prebuild": "node scripts/patch-material-table.js",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
