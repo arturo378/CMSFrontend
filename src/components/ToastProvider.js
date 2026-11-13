@@ -1,42 +1,14 @@
 import React from 'react';
-import { useSelector, useDispatch } from 'react-redux';
-import Snackbar from '@material-ui/core/Snackbar';
-import IconButton from '@material-ui/core/IconButton';
+import { useDispatch, useSelector } from 'react-redux';
+import { Snackbar, IconButton } from '@material-ui/core';
 import CloseIcon from '@material-ui/icons/Close';
 import { selectToasts, dismissToast } from '../store/slices/uiSlice';
-
-const COLORS = {
-  success: { backgroundColor: '#166534', color: '#ffffff' },
-  error:   { backgroundColor: '#b91c1c', color: '#ffffff' },
-  warning: { backgroundColor: '#b45309', color: '#ffffff' },
-  info:    { backgroundColor: '#1e40af', color: '#ffffff' },
-};
-
+const colors = { success: '#166534', error: '#b91c1c', warning: '#92400e', info: '#1e40af' };
 export default function ToastProvider() {
-  const toasts = useSelector(selectToasts);
-  const dispatch = useDispatch();
-
-  return (
-    <>
-      {toasts.map((t, idx) => (
-        <Snackbar
-          key={t.id}
-          open
-          autoHideDuration={t.duration ?? 4000}
-          onClose={() => dispatch(dismissToast(t.id))}
-          anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-          style={{ bottom: 24 + idx * 64 }}
-          ContentProps={{
-            style: { ...(COLORS[t.severity] || COLORS.info), fontWeight: 500 },
-          }}
-          message={t.message}
-          action={
-            <IconButton size="small" color="inherit" onClick={() => dispatch(dismissToast(t.id))}>
-              <CloseIcon fontSize="small" />
-            </IconButton>
-          }
-        />
-      ))}
-    </>
-  );
+  const toast = useSelector(selectToasts)[0]; const dispatch = useDispatch();
+  if (!toast) return null;
+  const dismiss = () => dispatch(dismissToast(toast.id));
+  return <Snackbar key={toast.id} open autoHideDuration={toast.severity === 'error' ? null : toast.duration ?? 4000} onClose={(event, reason) => { if (reason !== 'clickaway') dismiss(); }}
+    anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }} ContentProps={{ role: toast.severity === 'error' ? 'alert' : 'status', style: { backgroundColor: colors[toast.severity] || colors.info, color: '#fff' } }}
+    message={toast.message} action={<IconButton size="small" color="inherit" aria-label="Dismiss notification" onClick={dismiss}><CloseIcon fontSize="small" /></IconButton>} />;
 }

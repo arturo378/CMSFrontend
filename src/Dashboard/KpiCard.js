@@ -8,9 +8,9 @@ import CircularProgress from '@material-ui/core/CircularProgress';
 
 const useStyles = makeStyles((theme) => ({
   paper: {
-    borderRadius: 16,
+    borderRadius: 12,
     border: '1px solid #e2e8f0',
-    boxShadow: '0 10px 28px rgba(15, 23, 42, 0.08)',
+    boxShadow: 'none',
     backgroundColor: '#ffffff',
     overflow: 'hidden',
   },

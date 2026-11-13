@@ -6,6 +6,7 @@ import LogoMark from "./components/LogoMark";
 import { register, selectAuthError, selectAuthStatus, clearAuthError } from "./store/slices/authSlice";
 
 import "./styles/login/Login.css";
+import PasswordInput from "./components/PasswordInput";
 
 // Matches the backend password rule (min 8 characters).
 const MIN_PASSWORD_LENGTH = 8;
@@ -57,14 +58,14 @@ export default function Register({ onBackToLogin }) {
       <div className="login-card">
         <div className="login-header">
           <div className="login-logo">
-            <LogoMark size={64} glow />
+            <LogoMark size={48} />
           </div>
           <h1>{APP_TITLE}</h1>
           <p>Create your account</p>
         </div>
 
         <form className="login-form" onSubmit={handleSubmit}>
-          {shownError && <p className="login-error">{shownError}</p>}
+          {shownError && <p className="login-error" role="alert">{shownError}</p>}
           <FormGroup className="login-field" controlId="register-fullname">
             <FormLabel>Full Name</FormLabel>
             <FormControl
@@ -87,6 +88,7 @@ export default function Register({ onBackToLogin }) {
             <FormControl
               className="login-input"
               type="email"
+                autoComplete="email"
               value={email}
               onChange={e => setEmail(e.target.value)}
             />
@@ -101,18 +103,16 @@ export default function Register({ onBackToLogin }) {
           </FormGroup>
           <FormGroup className="login-field" controlId="register-password">
             <FormLabel>Password</FormLabel>
-            <FormControl
-              className="login-input"
-              type="password"
+            <PasswordInput className="login-input"
+              autoComplete="new-password"
               value={password}
               onChange={e => setPassword(e.target.value)}
             />
           </FormGroup>
           <FormGroup className="login-field" controlId="register-confirm-password">
             <FormLabel>Confirm Password</FormLabel>
-            <FormControl
-              className="login-input"
-              type="password"
+            <PasswordInput label="confirmation password" className="login-input"
+              autoComplete="new-password"
               value={confirmPassword}
               onChange={e => setConfirmPassword(e.target.value)}
             />

@@ -133,6 +133,34 @@ async function request(method, path, body, _isRetry = false) {
 
 const api = {
   get:    (path)        => request('GET',    path),
+  getAll: async (path) => {
+    const scope = () => `${getActiveClientId() || ''}:${getCurrentUser()?.id || ''}`;
+    const initialScope = scope();
+    const url = new URL(path, 'http://local');
+    url.searchParams.set('limit', '100');
+    url.searchParams.set('page', '1');
+    const load = async page => {
+      if (scope() !== initialScope) throw new Error('Client context changed. Please reload this list.');
+      const next = new URL(url);
+      next.searchParams.set('page', page);
+      const response = await request('GET', next.pathname + next.search);
+      if (scope() !== initialScope) throw new Error('Client context changed. Please reload this list.');
+      return response;
+    };
+    const first = await load(1);
+    if (!Array.isArray(first?.data)) return first;
+    const rows = [...first.data];
+    // Bound concurrency while reading every server page, rather than silently
+    // accepting the backend's 100-row cap as the complete collection.
+    for (let page = 2; page <= first.totalPages; page += 4) {
+      const pages = await Promise.all(Array.from({ length: Math.min(4, first.totalPages - page + 1) }, (_, index) => load(page + index)));
+      pages.forEach(result => {
+        if (!Array.isArray(result?.data)) throw new Error('Unable to load the complete list. Please try again.');
+        rows.push(...result.data);
+      });
+    }
+    return { ...first, data: rows, page: 1, limit: rows.length, totalPages: 1 };
+  },
   post:   (path, body)  => request('POST',   path, body),
   put:    (path, body)  => request('PUT',    path, body),
   patch:  (path, body)  => request('PATCH',  path, body),
@@ -140,8 +168,10 @@ const api = {
 };
 
 export const getCurrentUser = () => {
-  const raw = localStorage.getItem('currentUser');
-  return raw ? JSON.parse(raw) : null;
+  try {
+    const raw = localStorage.getItem('currentUser');
+    return raw ? JSON.parse(raw) : null;
+  } catch { return null; }
 };
 
 export const isAuthenticated = () => {

@@ -12,7 +12,7 @@ export const wellsApi = baseApi.injectEndpoints({
         if (lease) params.set('lease', lease);
         if (company) params.set('company', company);
         if (active !== undefined) params.set('active', active);
-        return { url: `/api/wells?${params.toString()}` };
+        return { url: `/api/wells?${params.toString()}`, allPages: !page && limit >= 100 };
       },
       providesTags: (result) =>
         result?.data

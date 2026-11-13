@@ -1,11 +1,11 @@
 import { createApi } from '@reduxjs/toolkit/query/react';
 import api from '../../config/api';
 
-const apiBaseQuery = async ({ url, method = 'GET', body }) => {
+const apiBaseQuery = async ({ url, method = 'GET', body, allPages }) => {
   try {
     let data;
     switch (method) {
-      case 'GET':    data = await api.get(url); break;
+      case 'GET':    data = await (allPages ? api.getAll(url) : api.get(url)); break;
       case 'DELETE': data = await api.delete(url); break;
       case 'POST':   data = await api.post(url, body); break;
       case 'PUT':    data = await api.put(url, body); break;

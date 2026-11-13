@@ -16,15 +16,7 @@ L.Marker.prototype.options.icon = L.icon({
   shadowSize: [41, 41],
 });
 
-export function parseGps(str) {
-  if (!str || typeof str !== 'string') return null;
-  const parts = str.split(',');
-  if (parts.length < 2) return null;
-  const lat = parseFloat(parts[0]);
-  const lng = parseFloat(parts[1]);
-  if (Number.isNaN(lat) || Number.isNaN(lng)) return null;
-  return { lat, lng };
-}
+export { parseGps } from './mapCoordinates';
 
 export default function MapView({ center, zoom = 13, markers = [], style }) {
   if (!center || typeof center.lat !== 'number' || typeof center.lng !== 'number') {

@@ -9,7 +9,7 @@ export const companiesApi = baseApi.injectEndpoints({
         const params = new URLSearchParams();
         if (page) params.set('page', page);
         params.set('limit', limit);
-        return { url: `/api/companies?${params.toString()}` };
+        return { url: `/api/companies?${params.toString()}`, allPages: !page && limit >= 100 };
       },
       providesTags: (result) =>
         result?.data

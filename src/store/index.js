@@ -17,8 +17,10 @@ import './api/warehouseChemicalsApi';
 import './api/pricingApi';
 import './api/reportsApi';
 import './api/clientsApi';
+import './api/recordsApi';
 
-export const store = configureStore({
+export const createAppStore = (preloadedState) => configureStore({
+  preloadedState,
   reducer: {
     auth: authReducer,
     ui: uiReducer,
@@ -29,5 +31,7 @@ export const store = configureStore({
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware().concat(baseApi.middleware),
 });
+
+export const store = createAppStore();
 
 export default store;

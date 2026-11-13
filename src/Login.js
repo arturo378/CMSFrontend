@@ -8,6 +8,7 @@ import Register from "./Register";
 import { login, selectAuthError, selectAuthStatus, clearAuthError } from "./store/slices/authSlice";
 
 import "./styles/login/Login.css";
+import PasswordInput from "./components/PasswordInput";
 
 export default function Login() {
   const dispatch = useDispatch();
@@ -41,31 +42,31 @@ export default function Login() {
       <div className="login-card">
         <div className="login-header">
           <div className="login-logo">
-            <LogoMark size={64} glow />
+            <LogoMark size={48} />
           </div>
           <h1>{APP_TITLE}</h1>
-          <p>Sign in to continue</p>
+          <p>Sign in to your workspace</p>
         </div>
 
         <form className="login-form" onSubmit={handleSubmit}>
-          {authError && <p className="login-error">{authError}</p>}
+          {authError && <p className="login-error" role="alert">{authError}</p>}
           <FormGroup className="login-field" controlId="email">
             <FormLabel>Email</FormLabel>
             <FormControl
               className="login-input"
               autoFocus
               type="email"
+                autoComplete="email"
               value={email}
               onChange={e => setEmail(e.target.value)}
             />
           </FormGroup>
           <FormGroup className="login-field" controlId="password">
             <FormLabel>Password</FormLabel>
-            <FormControl
-              className="login-input"
+            <PasswordInput className="login-input"
               value={password}
               onChange={e => setPassword(e.target.value)}
-              type="password"
+              autoComplete="current-password"
             />
           </FormGroup>
           <Button
@@ -76,7 +77,7 @@ export default function Login() {
             disabled={!validateForm() || authStatus === 'loading'}
             type="submit"
           >
-            {authStatus === 'loading' ? 'Signing in…' : 'Login'}
+            {authStatus === 'loading' ? 'Signing in…' : 'Sign in'}
           </Button>
           <button type="button" className="login-link-button" onClick={() => setShowForgot(true)}>
             Forgot password?

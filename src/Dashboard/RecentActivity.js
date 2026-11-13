@@ -13,6 +13,9 @@ import LocalShippingIcon from '@material-ui/icons/LocalShipping';
 import DescriptionIcon from '@material-ui/icons/Description';
 import { format } from 'date-fns';
 import Title from './Title';
+import { Link } from 'react-router-dom';
+import { linkTo, paths } from '../config/routes';
+import Button from '@material-ui/core/Button';
 import { useGetDeliveriesQuery } from '../store/api/deliveriesApi';
 import { useGetShippingPapersQuery } from '../store/api/shippingPapersApi';
 import {
@@ -106,14 +109,14 @@ export default function RecentActivity() {
         <div style={{ display: 'flex', justifyContent: 'center', padding: 16 }}>
           <CircularProgress size={24} />
         </div>
-      ) : items.length === 0 ? (
+      ) : deliveries.error || shipping.error ? (<div role="alert"><Typography color="error" variant="body2">Unable to load recent activity.</Typography><Button onClick={() => { deliveries.refetch(); shipping.refetch(); }}>Try again</Button></div>) : items.length === 0 ? (
         <Typography variant="body2" color="textSecondary" className={classes.empty}>
           No recent activity.
         </Typography>
       ) : (
         <List dense disablePadding>
           {items.map((item) => (
-            <ListItem key={`${item.kind}-${item.id}`} disableGutters>
+            <ListItem component={Link} button to={item.kind === 'delivery' ? linkTo(paths.deliveryChemicals, { deliveryId: item.id }) : linkTo(paths.shippingChemicals, { shippingPaperId: item.id })} key={`${item.kind}-${item.id}`} disableGutters>
               <ListItemAvatar>
                 <Avatar className={item.kind === 'delivery' ? classes.avatarDelivery : classes.avatarShipping}>
                   {item.kind === 'delivery' ? <LocalShippingIcon /> : <DescriptionIcon />}

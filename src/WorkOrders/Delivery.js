@@ -1,293 +1,54 @@
 import React, { useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import MaterialTable from '../config/MaterialTable';
-import { useHistory } from "react-router-dom";
-import { Select, MenuItem } from "@material-ui/core";
-import Modal from '@material-ui/core/Modal';
-import MapView, { parseGps } from '../config/MapView';
-import { makeStyles } from '@material-ui/core/styles';
-import {
-  MuiPickersUtilsProvider,
-  KeyboardDatePicker,
-} from '@material-ui/pickers';
-import DateFnsUtils from '@date-io/date-fns';
-import moment from 'moment';
-import PageTitle from '../components/PageTitle';
+import { Chip, TextField, MenuItem } from '@material-ui/core';
+import { useHistory } from 'react-router-dom';
+import ResourcePage from '../components/ResourcePage';
+import QueryState from '../components/QueryState';
+import RecordPicker from '../components/RecordPicker';
+import MapDialog from '../components/MapDialog';
+import { parseGps } from '../config/mapCoordinates';
 import { useAuth } from '../config/AuthContext';
-import { selectCurrentUser } from '../store/slices/authSlice';
-import { showToast } from '../store/slices/uiSlice';
+import { paths, linkTo, recordId } from '../config/routes';
+import useQueryValue from '../config/useQueryValue';
+import { useLocation } from 'react-router-dom';
+import { filterByDate } from '../config/useDateRange';
 import { useGetCompaniesQuery } from '../store/api/companiesApi';
 import { useGetLeasesQuery } from '../store/api/leasesApi';
 import { useGetWellsQuery } from '../store/api/wellsApi';
-import {
-  useGetDeliveriesQuery,
-  useAddDeliveryMutation,
-  useUpdateDeliveryMutation,
-  useDeleteDeliveryMutation,
-} from '../store/api/deliveriesApi';
-
-function getModalStyle() {
-  return {
-    top: '50%',
-    left: '50%',
-    transform: 'translate(-50%, -50%)',
-  };
-}
-
-const useStyles = makeStyles((theme) => ({
-  paper: {
-    position: 'absolute',
-    width: 1000,
-    backgroundColor: theme.palette.background.paper,
-    border: '2px solid #000',
-    boxShadow: theme.shadows[5],
-    padding: theme.spacing(2, 4, 3),
-  },
-}));
-
-function Delivery() {
-  const { isAdmin } = useAuth();
-  const classes = useStyles();
-  const dispatch = useDispatch();
-  const history = useHistory();
-  const currentUser = useSelector(selectCurrentUser);
-
-  const { data: companiesData } = useGetCompaniesQuery({ limit: 100 });
-  const { data: leasesData } = useGetLeasesQuery({ limit: 100 });
-  const { data: wellsData } = useGetWellsQuery({ limit: 100 });
-  const companies = companiesData?.data ?? [];
-  const leases = leasesData?.data ?? [];
-  const wells = wellsData?.data ?? [];
-
-  const { data, isFetching } = useGetDeliveriesQuery({ limit: 1000 });
-  const [addDelivery] = useAddDeliveryMutation();
-  const [updateDelivery] = useUpdateDeliveryMutation();
-  const [deleteDelivery] = useDeleteDeliveryMutation();
-
-  const rows = data?.data ?? [];
-
-  const [open, setOpen] = useState(false);
-  const [modalStyle] = useState(getModalStyle);
-  const [position, setPosition] = useState(null);
-  const [selectedDate, setSelectedDate] = useState(new Date());
-  const [selectedCompanyId, setSelectedCompanyId] = useState('');
-  const [selectedLeaseId, setSelectedLeaseId] = useState('');
-
-  const handleDateChange = (date) => setSelectedDate(date);
-  const handleClose = () => setOpen(false);
-
-  const mapStyles = { height: "400px", width: "100%" };
-
-  const getIdFromField = (val) => (val && typeof val === 'object') ? val.id : val;
-
-  const additem = async (incoming) => {
-    const companyId = getIdFromField(incoming.company);
-    const leaseId = getIdFromField(incoming.lease);
-    const wellId = getIdFromField(incoming.well);
-    if (!companyId || !leaseId || !wellId) {
-      dispatch(showToast({ severity: 'warning', message: 'Select company, lease, and well' }));
-      return;
-    }
-    try {
-      await addDelivery({
-        company: companyId,
-        lease: leaseId,
-        well: wellId,
-        date: selectedDate,
-        gps: incoming.gps,
-        comments: incoming.comments,
-        createdBy: currentUser?.id,
-        invoicenum: incoming.invoicenum,
-        active: 0,
-      }).unwrap();
-      dispatch(showToast({ severity: 'success', message: 'Delivery added' }));
-    } catch (err) {
-      dispatch(showToast({ severity: 'error', message: err?.message || 'Failed to add delivery' }));
-    }
-  };
-
-  const updateitem = async (oldData, incoming) => {
-    const companyId = getIdFromField(incoming.company);
-    const leaseId = getIdFromField(incoming.lease);
-    const wellId = getIdFromField(incoming.well);
-    try {
-      await updateDelivery({
-        id: oldData.id,
-        company: companyId,
-        lease: leaseId,
-        well: wellId,
-        date: selectedDate,
-        gps: incoming.gps,
-        comments: incoming.comments,
-        invoicenum: incoming.invoicenum,
-        active: incoming.active,
-      }).unwrap();
-      dispatch(showToast({ severity: 'success', message: 'Delivery updated' }));
-    } catch (err) {
-      dispatch(showToast({ severity: 'error', message: err?.message || 'Failed to update delivery' }));
-    }
-  };
-
-  const removeitem = async (row) => {
-    try {
-      await deleteDelivery(row.id).unwrap();
-      dispatch(showToast({ severity: 'success', message: 'Delivery deleted' }));
-    } catch (err) {
-      dispatch(showToast({ severity: 'error', message: err?.message || 'Failed to delete delivery' }));
-    }
-  };
-
-  const openmap = (event, rowData) => {
-    const p = parseGps(rowData.gps);
-    if (!p) return;
-    setPosition(p);
-    setOpen(true);
-  };
-
-  const goToChemicals = (event, rowData) => {
-    history.push({ pathname: '/delivery/editdelivery', state: rowData });
-  };
-
-  const body = (
-    <div style={modalStyle} className={classes.paper}>
-      <MapView center={position} zoom={13} markers={position ? [position] : []} style={mapStyles} />
-    </div>
-  );
-
-  const columns = [
-    { title: "id", field: "id", hidden: true },
-    { title: "Data Number", field: "datanumber", editable: 'never' },
-    {
-      title: "Date",
-      field: "date",
-      render: rowData => rowData.date ? moment(rowData.date).format("MM/DD/YY") : '',
-      editComponent: () => (
-        <MuiPickersUtilsProvider utils={DateFnsUtils}>
-          <KeyboardDatePicker
-            disableToolbar
-            variant="inline"
-            format="MM/dd/yyyy"
-            margin="normal"
-            id="date-picker-inline"
-            label="Date picker inline"
-            value={selectedDate}
-            onChange={handleDateChange}
-            KeyboardButtonProps={{ 'aria-label': 'change date' }}
-          />
-        </MuiPickersUtilsProvider>
-      ),
-    },
-    {
-      title: "Company",
-      field: "company",
-      render: rowData => rowData.company?.name || '',
-      editComponent: ({ value, onRowDataChange, rowData }) => (
-        <Select
-          value={getIdFromField(value) || ''}
-          onChange={(event) => {
-            setSelectedCompanyId(event.target.value);
-            setSelectedLeaseId('');
-            onRowDataChange({ ...rowData, company: event.target.value, lease: '', well: '' });
-          }}
-        >
-          {companies.map((c) => (
-            <MenuItem key={c.id} value={c.id}>{c.name}</MenuItem>
-          ))}
-        </Select>
-      ),
-    },
-    {
-      title: "Lease",
-      field: "lease",
-      render: rowData => rowData.lease?.name || '',
-      editComponent: ({ value, onRowDataChange, rowData }) => {
-        const compId = getIdFromField(rowData.company) || selectedCompanyId;
-        return (
-          <Select
-            value={getIdFromField(value) || ''}
-            onChange={(event) => {
-              setSelectedLeaseId(event.target.value);
-              onRowDataChange({ ...rowData, lease: event.target.value, well: '' });
-            }}
-          >
-            {leases.filter(l => getIdFromField(l.company) === compId).map((l) => (
-              <MenuItem key={l.id} value={l.id}>{l.name}</MenuItem>
-            ))}
-          </Select>
-        );
-      },
-    },
-    {
-      title: "Well",
-      field: "well",
-      render: rowData => rowData.well?.name || '',
-      editComponent: ({ value, onRowDataChange, rowData }) => {
-        const leaseId = getIdFromField(rowData.lease) || selectedLeaseId;
-        return (
-          <Select
-            value={getIdFromField(value) || ''}
-            onChange={(event) => {
-              onRowDataChange({ ...rowData, well: event.target.value });
-            }}
-          >
-            {wells.filter(w => getIdFromField(w.lease) === leaseId).map((w) => (
-              <MenuItem key={w.id} value={w.id}>{w.name}</MenuItem>
-            ))}
-          </Select>
-        );
-      },
-    },
-    { title: "GPS", field: "gps" },
-    { title: "Comments", field: "comments" },
-    {
-      title: "Created By",
-      field: "createdBy",
-      editable: 'never',
-      render: rowData => rowData.createdBy?.username || rowData.createdBy?.name || '',
-    },
-    { title: "Invoice Number", field: "invoicenum" },
-    {
-      title: 'Completed',
-      field: 'active',
-      lookup: { 1: 'Completed', 0: 'Non-Completed' },
-    },
+import { useGetDeliveriesQuery, useAddDeliveryMutation, useUpdateDeliveryMutation, useDeleteDeliveryMutation } from '../store/api/deliveriesApi';
+const choices = rows => rows.map(row => ({ value: row.id, label: row.name }));
+export default function Delivery() {
+  const history = useHistory(); const { isAdmin } = useAuth(); const [position, setPosition] = useState(null);
+  const [status, setStatus] = useQueryValue('active'); const active = ['0', '1'].includes(status) ? status : '';
+  const [companyId, setCompanyId] = useQueryValue('companyId');
+  const companies = useGetCompaniesQuery({ limit: 100 }); const leases = useGetLeasesQuery({ limit: 100 }); const wells = useGetWellsQuery({ limit: 100 });
+  const query = useGetDeliveriesQuery({ limit: 100, company: companyId || undefined, active: active === '' ? undefined : active });
+  const dateParams = new URLSearchParams(useLocation().search);
+  const from = dateParams.get('from'); const to = dateParams.get('to');
+  const visibleQuery = from || to ? { ...query, currentData: query.currentData ? { ...query.currentData, data: filterByDate(query.currentData.data, from, to) } : undefined } : query;
+  const [add] = useAddDeliveryMutation(); const [update] = useUpdateDeliveryMutation(); const [remove] = useDeleteDeliveryMutation();
+  const fields = [
+    { name: 'date', label: 'Date', type: 'date', required: true }, { name: 'invoicenum', label: 'Invoice number', required: true },
+    { name: 'company', label: 'Company', type: 'record', required: true, options: choices(companies.currentData?.data || []), resets: ['lease', 'well'], wide: true },
+    { name: 'lease', label: 'Lease', type: 'record', required: true, options: values => choices((leases.currentData?.data || []).filter(row => recordId(row.company) === values.company)), disabled: values => !values.company, resets: ['well'] },
+    { name: 'well', label: 'Well', type: 'record', required: true, options: values => choices((wells.currentData?.data || []).filter(row => recordId(row.lease) === values.lease && recordId(row.company) === values.company)), disabled: values => !values.lease },
+    { name: 'gps', label: 'GPS coordinates', helperText: 'Latitude, longitude' },
+    { name: 'active', label: 'Status', type: 'select', defaultValue: 0, options: [{ value: 0, label: 'Not completed' }, { value: 1, label: 'Completed' }] },
+    { name: 'comments', label: 'Comments', multiline: true },
   ];
-
-  return (
-    <div>
-      <PageTitle>Delivery</PageTitle>
-      <MaterialTable
-        onRowClick={openmap}
-        columns={columns}
-        data={rows}
-        isLoading={isFetching}
-        options={{
-          pageSize: 10,
-          pageSizeOptions: [5, 10, 20],
-          search: false,
-          actionsColumnIndex: -1,
-        }}
-        editable={isAdmin ? {
-          onRowAdd: (newData) => additem(newData),
-          onRowUpdate: (newData, oldData) => updateitem(oldData, newData),
-          onRowDelete: (oldData) => removeitem(oldData),
-        } : undefined}
-        actions={[{
-          icon: 'science',
-          tooltip: 'Manage Chemicals',
-          onClick: (event, rowData) => goToChemicals(event, rowData),
-        }]}
-      />
-      <Modal
-        open={open}
-        onClose={handleClose}
-        aria-labelledby="simple-modal-title"
-        aria-describedby="simple-modal-description"
-      >
-        {body}
-      </Modal>
-    </div>
-  );
+  const lookupError = companies.error || leases.error || wells.error;
+  const showMap = row => { const point = parseGps(row.gps || row.well?.gps); if (!point) throw new Error('No valid GPS coordinates are available for this record.'); setPosition(point); };
+  return <>
+    <ResourcePage title="Deliveries" query={visibleQuery} fields={fields} canEdit={isAdmin && Boolean(companies.currentData && leases.currentData && wells.currentData) && !lookupError} createLabel="Add delivery" columns={[
+      { title: 'Data number', field: 'datanumber' }, { title: 'Date', field: 'date', render: row => row.date ? new Date(row.date).toLocaleDateString() : '—' },
+      { title: 'Company', field: 'company.name' }, { title: 'Lease', field: 'lease.name' }, { title: 'Well', field: 'well.name' }, { title: 'Invoice', field: 'invoicenum' },
+      { title: 'Status', field: 'active', lookup: { 0: 'Not completed', 1: 'Completed' }, render: row => <Chip size="small" label={Number(row.active) === 1 ? 'Completed' : 'Not completed'} variant="outlined" /> },
+    ]} onSave={(values, row) => (row ? update({ ...values, id: row.id, active: Number(values.active) }) : add({ ...values, active: Number(values.active) })).unwrap()}
+      onDelete={row => remove(row.id).unwrap()} rowActions={[
+        { label: 'View chemicals', onClick: row => history.push(linkTo(paths.deliveryChemicals, { deliveryId: row.id })) }, { label: 'View map', onClick: showMap },
+      ]}>
+      <div className="filter-bar">{(from || to) && <span className="context-banner">Dates: {from || 'All'} to {to || 'All'}</span>}<div style={{ width: 260, maxWidth: '100%' }}><RecordPicker id="delivery-company-filter" label="Company" value={companyId} options={choices(companies.currentData?.data || [])} onChange={setCompanyId} disabled={!companies.currentData} /></div><TextField id="delivery-status" select label="Status" value={active} onChange={event => setStatus(event.target.value)} size="small" style={{ minWidth: 180 }}><MenuItem value="">All statuses</MenuItem><MenuItem value="0">Not completed</MenuItem><MenuItem value="1">Completed</MenuItem></TextField></div>
+      {lookupError && <QueryState error={lookupError} title="Unable to load form choices" onRetry={() => { companies.refetch(); leases.refetch(); wells.refetch(); }} />}
+    </ResourcePage>
+    <MapDialog position={position} onClose={() => setPosition(null)} />
+  </>;
 }
-
-export default Delivery;

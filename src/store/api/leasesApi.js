@@ -10,7 +10,7 @@ export const leasesApi = baseApi.injectEndpoints({
         if (page) params.set('page', page);
         params.set('limit', limit);
         if (company) params.set('company', company);
-        return { url: `/api/leases?${params.toString()}` };
+        return { url: `/api/leases?${params.toString()}`, allPages: !page && limit >= 100 };
       },
       providesTags: (result) =>
         result?.data

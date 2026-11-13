@@ -2,6 +2,9 @@
 
 Chemical Management System - Frontend Application
 
+The [platform UI modernization plan](docs/ui-modernization-plan.md) tracks
+the design, implementation, and verification on the `UIChanges` branch.
+
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
 Dependency installation, `npm start`, and `npm run build` run

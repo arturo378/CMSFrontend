@@ -10,7 +10,7 @@ export const warehouseChemicalsApi = baseApi.injectEndpoints({
         if (page) params.set('page', page);
         params.set('limit', limit);
         if (warehouse) params.set('warehouse', warehouse);
-        return { url: `/api/warehouse-chemicals?${params.toString()}` };
+        return { url: `/api/warehouse-chemicals?${params.toString()}`, allPages: !page && limit >= 100 };
       },
       providesTags: (result) =>
         result?.data

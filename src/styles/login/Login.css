@@ -4,16 +4,16 @@
   align-items: center;
   justify-content: center;
   padding: 24px;
-  background: linear-gradient(180deg, #f8fafc 0%, #eef2ff 100%);
+  background: #f8fafc;
 }
 
 .Login .login-card {
   width: 100%;
   max-width: 420px;
   background: #ffffff;
-  border-radius: 14px;
+  border-radius: 12px;
   padding: 28px;
-  box-shadow: 0 14px 34px rgba(15, 23, 42, 0.12);
+  box-shadow: 0 8px 32px rgba(15, 23, 42, 0.05);
   border: 1px solid #e2e8f0;
 }
 
@@ -214,3 +214,9 @@
     padding: 22px;
   }
 }
+.password-input { position: relative; }
+.password-input .login-input { padding-right: 62px; }
+.password-toggle { position: absolute; right: 8px; top: 5px; height: 36px; border: 0; background: transparent; color: #1d4ed8; font-size: 12px; border-radius: 6px; cursor: pointer; }
+.Login .login-button { background: #2563eb; border-color: #2563eb; box-shadow: none; }
+.Login .login-button:hover { background: #1d4ed8; }
+@media (max-width: 599px) { .Login { padding: 20px 16px; } .Login .login-card { padding: 24px; } .client-switcher { max-width: 175px; } }

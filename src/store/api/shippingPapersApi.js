@@ -6,11 +6,12 @@ const chemListTag = { type: 'ShippingChemical', id: 'LIST' };
 export const shippingPapersApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     getShippingPapers: builder.query({
-      query: ({ page, limit = 500 } = {}) => {
+      query: ({ page, limit = 500, active } = {}) => {
         const params = new URLSearchParams();
         if (page) params.set('page', page);
         params.set('limit', limit);
-        return { url: `/api/shipping-papers?${params.toString()}` };
+        if (active !== undefined && active !== null) params.set('active', active);
+        return { url: `/api/shipping-papers?${params.toString()}`, allPages: !page && limit >= 100 };
       },
       providesTags: (result) =>
         result?.data
@@ -40,7 +41,7 @@ export const shippingPapersApi = baseApi.injectEndpoints({
         if (page) params.set('page', page);
         params.set('limit', limit);
         if (shippingPaper) params.set('shippingPaper', shippingPaper);
-        return { url: `/api/shipping-chemicals?${params.toString()}` };
+        return { url: `/api/shipping-chemicals?${params.toString()}`, allPages: !page && limit >= 100 };
       },
       providesTags: (result) =>
         result?.data

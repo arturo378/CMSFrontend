@@ -11,7 +11,7 @@ export const clientsApi = baseApi.injectEndpoints({
         params.set('limit', limit);
         if (status) params.set('status', status);
         if (q) params.set('q', q);
-        return { url: `/api/clients?${params.toString()}` };
+        return { url: `/api/clients?${params.toString()}`, allPages: !page && limit >= 100 };
       },
       providesTags: (result) =>
         result?.data

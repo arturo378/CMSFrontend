@@ -9,7 +9,7 @@ export const usersApi = baseApi.injectEndpoints({
         const params = new URLSearchParams();
         if (page) params.set('page', page);
         params.set('limit', limit);
-        return { url: `/api/users/?${params.toString()}` };
+        return { url: `/api/users/?${params.toString()}`, allPages: !page && limit >= 100 };
       },
       providesTags: (result) =>
         result?.data

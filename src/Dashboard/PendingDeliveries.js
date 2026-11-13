@@ -9,6 +9,8 @@ import ListItemText from '@material-ui/core/ListItemText';
 import Chip from '@material-ui/core/Chip';
 import { formatDistanceToNow } from 'date-fns';
 import Title from './Title';
+import { Link } from 'react-router-dom';
+import { linkTo, paths } from '../config/routes';
 import { useGetDeliveriesQuery } from '../store/api/deliveriesApi';
 import { selectCompanyId } from '../store/slices/dashboardFiltersSlice';
 
@@ -68,7 +70,7 @@ export default function PendingDeliveries() {
           {items.map((d) => {
             const bucket = ageBucket(d.date);
             return (
-              <ListItem key={d.id} className={classes.row} disableGutters>
+              <ListItem component={Link} to={linkTo(paths.deliveryChemicals, { deliveryId: d.id })} button key={d.id} className={classes.row} disableGutters>
                 <ListItemText
                   primary={
                     <span>

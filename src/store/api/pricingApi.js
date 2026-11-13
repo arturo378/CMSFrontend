@@ -10,7 +10,7 @@ export const pricingApi = baseApi.injectEndpoints({
         if (page) params.set('page', page);
         params.set('limit', limit);
         if (company) params.set('company', company);
-        return { url: `/api/pricing?${params.toString()}` };
+        return { url: `/api/pricing?${params.toString()}`, allPages: !page && limit >= 100 };
       },
       providesTags: (result) =>
         result?.data

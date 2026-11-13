@@ -5,6 +5,7 @@ import { APP_TITLE } from "./config/appInfo";
 import LogoMark from "./components/LogoMark";
 
 import "./styles/login/Login.css";
+import PasswordInput from "./components/PasswordInput";
 
 // Mirrors OTP_RESEND_COOLDOWN_SECONDS on the backend. The server silently skips
 // a too-early resend rather than reporting it, so gating here is the only way to
@@ -121,14 +122,14 @@ export default function ForgotPassword({ onBackToLogin }) {
       <div className="login-card">
         <div className="login-header">
           <div className="login-logo">
-            <LogoMark size={64} glow />
+            <LogoMark size={48} />
           </div>
           <h1>{APP_TITLE}</h1>
           <p>{headings[step]}</p>
           <p className="login-subheading">{subheadings[step]}</p>
         </div>
 
-        {error && <p className="login-error">{error}</p>}
+        {error && <p className="login-error" role="alert">{error}</p>}
 
         {step === "email" && (
           <form className="login-form" onSubmit={requestCode}>
@@ -138,6 +139,7 @@ export default function ForgotPassword({ onBackToLogin }) {
                 className="login-input"
                 autoFocus
                 type="email"
+                autoComplete="email"
                 value={email}
                 onChange={e => setEmail(e.target.value)}
               />
@@ -160,7 +162,7 @@ export default function ForgotPassword({ onBackToLogin }) {
 
         {step === "code" && (
           <form className="login-form" onSubmit={verifyCode}>
-            {notice && <p className="login-note">{notice}</p>}
+            {notice && <p className="login-note" role="status">{notice}</p>}
             <FormGroup className="login-field" controlId="reset-otp">
               <FormLabel>Verification code</FormLabel>
               <FormControl
@@ -204,19 +206,17 @@ export default function ForgotPassword({ onBackToLogin }) {
           <form className="login-form" onSubmit={submitNewPassword}>
             <FormGroup className="login-field" controlId="reset-password">
               <FormLabel>New password</FormLabel>
-              <FormControl
-                className="login-input"
+              <PasswordInput className="login-input"
                 autoFocus
-                type="password"
+                autoComplete="new-password"
                 value={password}
                 onChange={e => setPassword(e.target.value)}
               />
             </FormGroup>
             <FormGroup className="login-field" controlId="reset-confirm-password">
               <FormLabel>Confirm new password</FormLabel>
-              <FormControl
-                className="login-input"
-                type="password"
+              <PasswordInput label="confirmation password" className="login-input"
+                autoComplete="new-password"
                 value={confirmPassword}
                 onChange={e => setConfirmPassword(e.target.value)}
               />
@@ -236,7 +236,7 @@ export default function ForgotPassword({ onBackToLogin }) {
 
         {step === "done" && (
           <div className="login-form">
-            <p className="login-success">
+            <p className="login-success" role="status">
               Your password has been reset and every device has been signed out.
             </p>
             <Button

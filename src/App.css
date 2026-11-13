@@ -1,39 +1,80 @@
-.App {
-  text-align: center;
+:root { color-scheme: light; }
+* { box-sizing: border-box; }
+.App { min-height: 100vh; text-align: left; }
+a { text-underline-offset: 3px; }
+button, input, select, textarea { font: inherit; }
+:focus-visible { outline: 3px solid #2563eb; outline-offset: 3px; }
+.skip-link { position: fixed; top: -80px; left: 16px; padding: 12px 18px; background: #fff; color: #1d4ed8; z-index: 2000; border-radius: 8px; }
+.skip-link:focus { top: 8px; }
+.app-shell { --sidebar-width: 252px; min-height: 100vh; background: #f8fafc; }
+.app-shell.sidebar-collapsed { --sidebar-width: 76px; }
+.workspace-topbar.MuiAppBar-root { left: var(--sidebar-width); width: calc(100% - var(--sidebar-width)); border-bottom: 1px solid #e2e8f0; background: #fff; }
+.workspace-toolbar { min-height: 72px !important; gap: 12px; }
+.topbar-spacer { flex: 1; }
+.workspace-sidebar.MuiDrawer-paper { width: var(--sidebar-width); background: #0f172a; color: #cbd5e1; border: 0; overflow-x: hidden; }
+.workspace-brand { height: 88px; display: flex; align-items: center; gap: 10px; padding: 16px 20px; color: white; font-size: 20px; font-weight: 700; }
+.workspace-brand > span { flex: 1; }
+.workspace-brand .MuiIconButton-root { color: #94a3b8; padding: 4px; }
+.brand-caption { display: block; font-size: 10px; font-weight: 400; color: #94a3b8; margin-top: 2px; white-space: nowrap; }
+.sidebar-footer { margin-top: auto; padding: 24px 20px; font-size: 10px; color: #94a3b8; white-space: nowrap; }
+.workspace-dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #60a5fa; margin-right: 6px; }
+.workspace-content { padding: 104px 32px 40px; margin-left: var(--sidebar-width); min-width: 0; outline: none; }
+.workspace-content > div { max-width: 1600px; margin-left: auto; margin-right: auto; }
+.account-button.MuiButton-root { gap: 8px; color: #334155; }
+.account-avatar.MuiAvatar-root { width: 32px; height: 32px; font-size: 13px; font-weight: 650; color: #1d4ed8; background: #eff6ff; }
+.page-header { display: flex; gap: 16px; align-items: center; justify-content: space-between; margin-bottom: 26px; }
+.page-heading { min-width: 0; }
+.page-eyebrow { display: block; margin-bottom: 6px; font-size: 11px; font-weight: 650; letter-spacing: .08em; text-transform: uppercase; color: #64748b; }
+.page-description { margin-top: 8px !important; max-width: 720px; }
+.page-breadcrumbs { margin-bottom: 10px !important; font-size: 12px !important; }
+.page-breadcrumbs .MuiTypography-root { font-size: 12px; }
+.page-actions { display: flex; flex-shrink: 0; align-items: center; gap: 8px; }
+.query-state { display: flex; flex-direction: column; align-items: center; gap: 12px; text-align: center; padding: 48px 24px; }
+.query-state .MuiTypography-body2 { max-width: 440px; }
+.data-table { overflow: hidden; border: 1px solid #e2e8f0; border-radius: 12px; background: #fff; }
+.data-table .MuiPaper-root { box-shadow: none; }
+.data-table .MuiTable-root { min-width: 540px; }
+.data-table .MuiTableCell-root { padding: 14px 16px; }
+.data-table .MuiToolbar-root { padding: 12px 16px; flex-wrap: wrap; gap: 8px; }
+.table-summary { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; padding: 10px 16px; color: #64748b; font-size: 12px; border-bottom: 1px solid #e2e8f0; }
+.table-summary .MuiButton-root { min-height: 28px; font-size: 12px; }
+.table-action.MuiButton-root { white-space: nowrap; margin-right: 4px; min-width: auto; font-size: 12px; }
+.record-form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; padding-top: 8px; padding-bottom: 12px; }
+.record-form .form-wide { grid-column: 1 / -1; }
+.form-error { padding: 12px 16px; color: #991b1b; background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; margin-bottom: 16px; }
+.context-banner { padding: 12px 16px; background: #eff6ff; border: 1px solid #dbeafe; border-radius: 8px; color: #1e40af; margin-bottom: 20px; font-size: 13px; }
+.record-picker-list { max-height: 320px; overflow: auto; }
+.record-picker-list .MuiListItem-root { min-height: 44px; }
+.filter-bar { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin-bottom: 20px; }
+.date-range-label { font-size: 12px; color: #64748b; margin: -10px 0 16px; }
+@media (max-width: 959px) {
+  .app-shell, .app-shell.sidebar-collapsed { --sidebar-width: 0px; }
+  .workspace-sidebar.MuiDrawer-paper { width: 260px; }
+  .workspace-content { padding: 92px 20px 28px; }
+  .workspace-toolbar { min-height: 64px !important; padding-left: 12px !important; padding-right: 12px !important; gap: 4px; }
+  .workspace-section { display: none; }
 }
-@import url('https://fonts.googleapis.com/icon?family=Material+Icons');
+@media (max-width: 599px) {
+  .workspace-content { padding-left: 16px; padding-right: 16px; }
+  .page-header { align-items: flex-start; flex-direction: column; margin-bottom: 20px; }
+  .page-actions { width: 100%; flex-wrap: wrap; }
+  .page-actions > .MuiButton-contained { flex: 1; }
+  .account-name { display: none; }
+  .record-form { grid-template-columns: minmax(0, 1fr); }
+  .MuiDialog-paper { margin: 16px !important; }
+  .MuiDialog-paperFullScreen { margin: 0 !important; }
+  .data-table .MuiTablePagination-toolbar { padding: 8px; }
+  .data-table .MuiTablePagination-caption { font-size: 11px; }
+  .data-table .MuiToolbar-root > div { max-width: 100%; }
+  .filter-bar > * { flex: 1 1 100%; }
+  .App .MuiButton-root, .App .MuiIconButton-root, .MuiDialog-root .MuiButton-root { min-height: 44px; }
+}
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; } }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
-}
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
-}
-
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
-}
-
-.App-link {
-  color: #61dafb;
-}
-
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
+.report-filters { padding: 16px; margin-bottom: 24px; }
+.report-filters .filter-bar { margin-bottom: 8px; }
+.report-record-filter { width: 260px; max-width: 100%; }
+.summary-tile { padding: 20px; }
+.summary-tile .MuiTypography-h5 { margin-top: 8px; }
+.report-summary { margin-bottom: 24px !important; }

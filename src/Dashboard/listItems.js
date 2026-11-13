@@ -19,6 +19,7 @@ import DomainIcon from '@material-ui/icons/Domain';
 import { Link } from 'react-router-dom';
 import { useLocation } from 'react-router-dom';
 import { useAuth } from '../config/AuthContext';
+import { routeFor, navigationRoute } from '../config/routes';
 
 const useStyles = makeStyles(() => ({
   section: {
@@ -30,7 +31,7 @@ const useStyles = makeStyles(() => ({
     fontWeight: 700,
     letterSpacing: 1.4,
     textTransform: 'uppercase',
-    color: '#64748b',
+    color: '#94a3b8',
     backgroundColor: 'transparent',
     padding: '14px 24px 6px',
   },
@@ -38,7 +39,7 @@ const useStyles = makeStyles(() => ({
     position: 'relative',
     borderRadius: 10,
     margin: '3px 12px',
-    minHeight: 42,
+    minHeight: 44,
     padding: '0 12px',
     color: '#cbd5e1',
     transition: 'background-color 200ms ease, color 200ms ease, transform 200ms ease',
@@ -49,11 +50,11 @@ const useStyles = makeStyles(() => ({
     },
   },
   navItemSelected: {
-    background: 'linear-gradient(90deg, #3b82f6 0%, #6366f1 100%) !important',
+    background: '#1e3a5f !important',
     color: '#ffffff !important',
-    boxShadow: '0 8px 20px rgba(59, 130, 246, 0.35)',
+    boxShadow: 'none',
     '&:hover': {
-      background: 'linear-gradient(90deg, #3b82f6 0%, #6366f1 100%) !important',
+      background: '#1e3a5f !important',
       transform: 'translateX(2px)',
     },
   },
@@ -86,7 +87,7 @@ const menuSections = [
     ],
   },
   {
-    header: 'Admin',
+    header: 'Administration',
     adminOnly: true,
     items: [
       { label: 'User Management', to: '/usermanagement', icon: PeopleIcon },
@@ -126,7 +127,10 @@ function SidebarItem({ item, isCollapsed, isSelected }) {
     <ListItem
       button
       component={Link}
+      role="link"
       to={item.to}
+      aria-label={routeFor(item.to)?.title || item.label}
+      aria-current={isSelected ? 'page' : undefined}
       selected={isSelected}
       className={[classes.navItem, isSelected ? classes.navItemSelected : ''].join(' ')}
       style={{
@@ -146,7 +150,7 @@ function SidebarItem({ item, isCollapsed, isSelected }) {
       </ListItemIcon>
       {!isCollapsed && (
         <ListItemText
-          primary={item.label}
+          primary={routeFor(item.to)?.title || item.label}
           primaryTypographyProps={{
             className: [classes.navLabel, isSelected ? classes.navLabelSelected : ''].join(' '),
           }}
@@ -157,7 +161,7 @@ function SidebarItem({ item, isCollapsed, isSelected }) {
 
   if (isCollapsed) {
     return (
-      <Tooltip title={item.label} placement="right" arrow>
+      <Tooltip title={routeFor(item.to)?.title || item.label} placement="right" arrow>
         {itemContent}
       </Tooltip>
     );
@@ -168,6 +172,7 @@ function SidebarItem({ item, isCollapsed, isSelected }) {
 
 export function MainListItems({ isCollapsed }) {
   const location = useLocation();
+  const navigationPath = navigationRoute(location.pathname)?.path;
   const classes = useStyles();
   const { isAdmin, isSuperAdmin } = useAuth();
 
@@ -180,13 +185,13 @@ export function MainListItems({ isCollapsed }) {
       {visibleSections.map((section) => (
         <div key={section.header || 'main'} className={classes.section}>
           {!isCollapsed && section.header && (
-            <ListSubheader disableSticky className={classes.sectionHeader}>
+            <ListSubheader component="div" disableSticky className={classes.sectionHeader}>
               {section.header}
             </ListSubheader>
           )}
 
           {section.items.map((item) => {
-            const isSelected = item.to === '/'
+            const isSelected = navigationPath ? item.to === navigationPath : item.to === '/'
               ? location.pathname === '/'
               : location.pathname.startsWith(item.to);
 
@@ -204,6 +209,3 @@ export function MainListItems({ isCollapsed }) {
     </div>
   );
 }
-
-
-

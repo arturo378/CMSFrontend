@@ -1,181 +1,35 @@
-import React, { useState } from 'react';
+import React from 'react';
+import { Chip } from '@material-ui/core';
 import { useDispatch } from 'react-redux';
-import MaterialTable from '../config/MaterialTable';
-import Button from '@material-ui/core/Button';
-import Dialog from '@material-ui/core/Dialog';
-import DialogTitle from '@material-ui/core/DialogTitle';
-import DialogContent from '@material-ui/core/DialogContent';
-import DialogActions from '@material-ui/core/DialogActions';
-import TextField from '@material-ui/core/TextField';
-import FormControl from '@material-ui/core/FormControl';
-import InputLabel from '@material-ui/core/InputLabel';
-import Select from '@material-ui/core/Select';
-import MenuItem from '@material-ui/core/MenuItem';
-import PageTitle from '../components/PageTitle';
+import ResourcePage from '../components/ResourcePage';
+import { useConfirmation } from '../components/ConfirmationProvider';
 import { useAuth } from '../config/AuthContext';
 import { ROLES, assignableRoles } from '../config/permissions';
-import {
-  useGetUsersQuery,
-  useAddUserMutation,
-  useUpdateUserMutation,
-  useResetUserPasswordMutation,
-  useDeactivateUserMutation,
-} from '../store/api/usersApi';
 import { showToast } from '../store/slices/uiSlice';
-
+import { useGetUsersQuery, useAddUserMutation, useUpdateUserMutation, useResetUserPasswordMutation, useDeactivateUserMutation } from '../store/api/usersApi';
 export default function UserManagement() {
-  const dispatch = useDispatch();
-  const { user: currentUser } = useAuth();
-  const roleOptions = assignableRoles(currentUser?.role);
-  const { data, isFetching } = useGetUsersQuery({ limit: 1000 });
-  const [addUser] = useAddUserMutation();
-  const [updateUser] = useUpdateUserMutation();
-  const [resetPassword] = useResetUserPasswordMutation();
-  const [deactivateUser] = useDeactivateUserMutation();
-
-  const [createDialogOpen, setCreateDialogOpen] = useState(false);
-  const [username, setUsername] = useState('');
-  const [fullname, setFullname] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [role, setRole] = useState(ROLES.USER);
-
-  const rows = data?.data ?? [];
-
-  const columns = [
-    { title: 'id', field: 'id', hidden: true },
-    { title: 'Username', field: 'username' },
-    { title: 'Full Name', field: 'fullname' },
-    { title: 'Email', field: 'email', editable: 'never' },
-    {
-      title: 'Role',
-      field: 'role',
-      lookup: Object.fromEntries(roleOptions.map((r) => [r, r])),
-    },
+  const { user } = useAuth(); const { confirm } = useConfirmation(); const dispatch = useDispatch();
+  const query = useGetUsersQuery({ limit: 100 });
+  const [add] = useAddUserMutation(); const [update] = useUpdateUserMutation(); const [reset] = useResetUserPasswordMutation(); const [deactivate] = useDeactivateUserMutation();
+  const roles = assignableRoles(user?.role);
+  const fields = row => [
+    { name: 'username', label: 'Username', required: true },
+    { name: 'fullname', label: 'Full name', required: true, defaultValue: row?.name || '' },
+    { name: 'email', label: 'Email', type: 'email', required: true, disabled: Boolean(row), wide: true },
+    { name: 'role', label: 'Role', type: 'select', defaultValue: ROLES.USER, required: true, options: [...new Set([...roles, ...(row?.role ? [row.role] : [])])].map(role => ({ value: role, label: role === ROLES.SUPERADMIN ? 'Superadmin' : role === ROLES.ADMIN ? 'Admin' : 'User' })), disabled: row && !roles.includes(row.role), omit: row && !roles.includes(row.role) },
+    ...(!row ? [{ name: 'password', label: 'Password', type: 'password', minLength: 8, required: true, autoComplete: 'new-password' }, { name: 'confirmPassword', label: 'Confirm password', type: 'password', matches: 'password', required: true, omit: true, autoComplete: 'new-password' }] : []),
   ];
-
-  const resetCreateForm = () => {
-    setUsername('');
-    setFullname('');
-    setEmail('');
-    setPassword('');
-    setConfirmPassword('');
-    setRole(ROLES.USER);
-  };
-
-  const handleCreateUser = async () => {
-    if (password !== confirmPassword) {
-      dispatch(showToast({ severity: 'error', message: "Passwords don't match" }));
-      return;
-    }
-    try {
-      await addUser({ username, fullname, name: fullname, email, password, role }).unwrap();
-      setCreateDialogOpen(false);
-      resetCreateForm();
-      dispatch(showToast({ severity: 'success', message: 'User created' }));
-    } catch (err) {
-      dispatch(showToast({ severity: 'error', message: err?.message || 'Failed to create user' }));
-    }
-  };
-
-  return (
-    <div>
-      <PageTitle>User Management</PageTitle>
-      <MaterialTable
-        columns={columns}
-        data={rows}
-        isLoading={isFetching}
-        options={{
-          pageSize: 10,
-          pageSizeOptions: [5, 10, 20],
-          search: false,
-          actionsColumnIndex: -1,
-        }}
-        actions={[
-          {
-            icon: 'person_add',
-            tooltip: 'Create New User',
-            isFreeAction: true,
-            onClick: () => {
-              resetCreateForm();
-              setCreateDialogOpen(true);
-            },
-          },
-          {
-            icon: 'lock_open',
-            tooltip: 'Email Password Reset Code',
-            onClick: async (event, rowData) => {
-              if (window.confirm(`Email a password reset code to ${rowData.fullname} at ${rowData.email}?`)) {
-                try {
-                  await resetPassword(rowData.id).unwrap();
-                  dispatch(showToast({
-                    severity: 'success',
-                    message: `A 6-digit reset code has been emailed to ${rowData.email}. It expires in 10 minutes.`,
-                  }));
-                } catch (err) {
-                  dispatch(showToast({
-                    severity: 'error',
-                    message: err?.message || 'Could not send the reset code',
-                  }));
-                }
-              }
-            },
-          },
-          {
-            icon: 'block',
-            tooltip: 'Deactivate User',
-            onClick: async (event, rowData) => {
-              if (window.confirm(`Deactivate user ${rowData.fullname}?`)) {
-                try {
-                  await deactivateUser(rowData.id).unwrap();
-                  dispatch(showToast({ severity: 'success', message: 'User deactivated' }));
-                } catch (err) {
-                  dispatch(showToast({ severity: 'error', message: err?.message || 'Failed to deactivate user' }));
-                }
-              }
-            },
-          },
-        ]}
-        editable={{
-          onRowUpdate: async (newData, oldData) => {
-            try {
-              await updateUser({
-                id: oldData.id,
-                username: newData.username,
-                fullname: newData.fullname,
-                role: newData.role,
-              }).unwrap();
-              dispatch(showToast({ severity: 'success', message: 'User updated' }));
-            } catch (err) {
-              dispatch(showToast({ severity: 'error', message: err?.message || 'Failed to update user' }));
-            }
-          },
-        }}
-      />
-
-      <Dialog open={createDialogOpen} onClose={() => setCreateDialogOpen(false)}>
-        <DialogTitle>Create New User</DialogTitle>
-        <DialogContent>
-          <TextField label="Username" value={username} onChange={(e) => setUsername(e.target.value)} fullWidth margin="dense" />
-          <TextField label="Full Name" value={fullname} onChange={(e) => setFullname(e.target.value)} fullWidth margin="dense" />
-          <TextField label="Email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} fullWidth margin="dense" />
-          <TextField label="Password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} fullWidth margin="dense" />
-          <TextField label="Confirm Password" type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} fullWidth margin="dense" />
-          <FormControl fullWidth margin="dense">
-            <InputLabel id="new-user-role-label">Role</InputLabel>
-            <Select labelId="new-user-role-label" value={role} onChange={(e) => setRole(e.target.value)}>
-              {roleOptions.map((r) => (
-                <MenuItem key={r} value={r}>{r}</MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setCreateDialogOpen(false)}>Cancel</Button>
-          <Button onClick={handleCreateUser} color="primary">Create</Button>
-        </DialogActions>
-      </Dialog>
-    </div>
-  );
+  return <ResourcePage title="Users" query={query} fields={fields} createLabel="Add user" columns={[
+    { title: 'Name', field: 'fullname', render: row => row.fullname || row.name || row.username }, { title: 'Username', field: 'username' }, { title: 'Email', field: 'email' }, { title: 'Role', field: 'role' },
+    { title: 'Status', field: 'status', render: row => <Chip size="small" label={row.status === 'inactive' ? 'Inactive' : 'Active'} variant="outlined" /> },
+  ]} onSave={(values, row) => (row ? update({ ...values, name: values.fullname, id: row.id }) : add({ ...values, name: values.fullname })).unwrap()}
+    rowActions={[
+      { label: 'Send reset code', onClick: async row => {
+        if (await confirm({ title: 'Email a password reset code?', message: 'A reset code will be sent to ' + row.email + '. It expires in 10 minutes.', confirmLabel: 'Send reset code' })) { await reset(row.id).unwrap(); dispatch(showToast({ severity: 'success', message: 'Password reset code sent' })); }
+      } },
+      row => ({ label: row.status === 'inactive' ? 'Reactivate' : 'Deactivate', onClick: async selected => {
+        const inactive = selected.status === 'inactive';
+        if (await confirm({ title: (inactive ? 'Reactivate ' : 'Deactivate ') + (selected.fullname || selected.name || selected.username) + '?', message: inactive ? 'This user will be able to sign in again.' : 'This user will be signed out and unable to sign in.', confirmLabel: inactive ? 'Reactivate user' : 'Deactivate user', danger: !inactive })) { await (inactive ? update({ id: selected.id, status: 'active' }) : deactivate(selected.id)).unwrap(); dispatch(showToast({ severity: 'success', message: 'User status updated' })); }
+      } }),
+    ]} />;
 }

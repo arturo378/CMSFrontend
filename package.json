@@ -59,5 +59,10 @@
   "devDependencies": {
     "ajv": "^8.18.0",
     "ajv-keywords": "^5.1.0"
+  },
+  "jest": {
+    "moduleNameMapper": {
+      "^@standard-schema/utils$": "<rootDir>/node_modules/@standard-schema/utils/dist/index.cjs"
+    }
   }
 }

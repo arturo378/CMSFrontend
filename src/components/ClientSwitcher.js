@@ -1,68 +1,40 @@
 import React from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { makeStyles } from '@material-ui/core/styles';
-import FormControl from '@material-ui/core/FormControl';
-import Select from '@material-ui/core/Select';
-import MenuItem from '@material-ui/core/MenuItem';
+import { batch, useDispatch, useSelector } from 'react-redux';
+import { useHistory, useLocation } from 'react-router-dom';
+import { Typography, TextField, MenuItem, Button } from '@material-ui/core';
 import { useAuth } from '../config/AuthContext';
 import { useGetClientsQuery } from '../store/api/clientsApi';
 import { baseApi } from '../store/api/baseApi';
 import { setActiveClient, clearActiveClient, selectActiveClientId } from '../store/slices/clientContextSlice';
 import { resetFilters } from '../store/slices/dashboardFiltersSlice';
-
-const useStyles = makeStyles(() => ({
-  root: {
-    minWidth: 180,
-    marginRight: 16,
-    borderRadius: 8,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    padding: '2px 10px',
-  },
-  select: {
-    color: '#fff',
-  },
-  icon: {
-    color: 'rgba(255, 255, 255, 0.7)',
-  },
-}));
-
-// Superadmin-only AppBar control for acting on another tenant. Selecting a
-// client persists it (config/clientContext.js) so every subsequent request
-// carries X-Client-Id, and resets both the RTK Query cache and the dashboard
-// company filter so no cross-tenant data survives the switch.
+import { clearToasts } from '../store/slices/uiSlice';
+import { useConfirmation } from './ConfirmationProvider';
+import { navigationRoute } from '../config/routes';
 export default function ClientSwitcher() {
-  const classes = useStyles();
-  const { isSuperAdmin } = useAuth();
-  const dispatch = useDispatch();
+  const { user, isSuperAdmin } = useAuth(); const dispatch = useDispatch(); const history = useHistory(); const { discard, saving } = useConfirmation();
   const activeClientId = useSelector(selectActiveClientId);
-  const { data } = useGetClientsQuery({ status: 'active', limit: 200 }, { skip: !isSuperAdmin });
-  const clients = data?.data ?? [];
-
-  if (!isSuperAdmin) return null;
-
-  const handleChange = (e) => {
-    const id = e.target.value || null;
-    const client = clients.find((c) => c.id === id);
-    dispatch(id ? setActiveClient({ id, name: client?.name }) : clearActiveClient());
-    dispatch(baseApi.util.resetApiState());
-    dispatch(resetFilters());
+  const location = useLocation();
+  const query = useGetClientsQuery({ status: 'active', limit: 100 }, { skip: !isSuperAdmin });
+  const clients = query.currentData?.data || [];
+  if (!isSuperAdmin) return <Typography variant="caption" color="textSecondary">{user?.clientId?.name || 'My client'}</Typography>;
+  const change = async event => {
+    const id = event.target.value || null;
+    if (id === (activeClientId || null) || !(await discard())) return;
+    const client = clients.find(item => item.id === id);
+    const destination = navigationRoute(location.pathname);
+    batch(() => {
+      dispatch(baseApi.util.resetApiState());
+      dispatch(resetFilters()); dispatch(clearToasts());
+      dispatch(id ? setActiveClient({ id, name: client?.name }) : clearActiveClient());
+      history.replace(destination?.path || '/');
+    });
   };
-
-  return (
-    <FormControl className={classes.root}>
-      <Select
-        value={activeClientId || ''}
-        onChange={handleChange}
-        displayEmpty
-        disableUnderline
-        className={classes.select}
-        classes={{ icon: classes.icon }}
-      >
-        <MenuItem value=""><em>My client</em></MenuItem>
-        {clients.map((c) => (
-          <MenuItem key={c.id} value={c.id}>{c.name}</MenuItem>
-        ))}
-      </Select>
-    </FormControl>
-  );
+  return <div className="client-switcher">
+    <TextField id="client-workspace" select label="Client workspace" size="small" value={activeClientId || ''} onChange={change} disabled={saving} style={{ width: 190, maxWidth: '100%' }}>
+      <MenuItem value="">My client</MenuItem>
+      {activeClientId && !clients.some(client => client.id === activeClientId) && <MenuItem value={activeClientId} disabled>{query.isFetching ? 'Loading client…' : 'Selected client unavailable'}</MenuItem>}
+      {clients.map(client => <MenuItem key={client.id} value={client.id}>{client.name}</MenuItem>)}
+    </TextField>
+    {query.error && <Button size="small" onClick={query.refetch}>Retry clients</Button>}
+  </div>;
 }

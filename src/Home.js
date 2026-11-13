@@ -1,256 +1,99 @@
-import React from 'react';
-import clsx from 'clsx';
+import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { makeStyles } from '@material-ui/core/styles';
+import { BrowserRouter as Router, Switch as Switcher, Route, useLocation } from 'react-router-dom';
+import { AppBar, Toolbar, Drawer, List, IconButton, Typography, Button, Avatar, Menu, MenuItem, Divider, useMediaQuery } from '@material-ui/core';
 import { useTheme } from '@material-ui/core/styles';
-import CssBaseline from '@material-ui/core/CssBaseline';
-import Drawer from '@material-ui/core/Drawer';
-import AppBar from '@material-ui/core/AppBar';
-import Toolbar from '@material-ui/core/Toolbar';
-import List from '@material-ui/core/List';
-import Typography from '@material-ui/core/Typography';
-import IconButton from '@material-ui/core/IconButton';
 import MenuIcon from '@material-ui/icons/Menu';
 import ChevronLeftIcon from '@material-ui/icons/ChevronLeft';
-import { MainListItems } from './Dashboard/listItems.js';
-import Button from '@material-ui/core/Button';
-import { BrowserRouter as Router, Switch as Switcher, Route, useLocation } from 'react-router-dom';
-import UserManagement from './Admin/UserManagement';
-import LocationManagement from './Admin/LocationManagement.js';
-import LeaseManagement from './Admin/LeaseManagement.js';
-import WellManagement from './Admin/WellManagement.js';
-import WarehouseManagement from './Admin/WarehouseManagement.js';
-import ChemicalManagement from './Admin/ChemicalManagement.js';
-import Pricing from './Admin/Pricing.js';
-import ClientManagement from './Admin/ClientManagement.js';
-import ShippingPaper from './WorkOrders/ShippingPapers.js';
-import ShippingChemicals from './WorkOrders/ShippingChemicals.js';
-import Delivery from './WorkOrders/Delivery.js';
-import EditDelivery from './WorkOrders/EditDelivery.js';
-import Main from './Dashboard/Main'
-import WeeklyEarnings from './Reports/WeeklyEarnings.js';
-import WarehouseInventory from './Reports/WarehouseInventory.js';
-import WarehouseChemical from './Admin/WarehouseChemical.js';
-import UserReport from './Reports/UserReport.js';
-import useMediaQuery from '@material-ui/core/useMediaQuery';
+import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
+import { MainListItems } from './Dashboard/listItems';
 import LogoMark from './components/LogoMark';
 import ToastProvider from './components/ToastProvider';
 import AdminRoute from './components/AdminRoute';
 import SuperAdminRoute from './components/SuperAdminRoute';
 import ClientSwitcher from './components/ClientSwitcher';
+import QueryState from './components/QueryState';
+import { useConfirmation } from './components/ConfirmationProvider';
+import { useAuth } from './config/AuthContext';
+import { routeFor } from './config/routes';
+import { APP_TITLE } from './config/appInfo';
 import { logout } from './store/slices/authSlice';
 import { selectSidebarOpen, setSidebar } from './store/slices/uiSlice';
+import { selectActiveClientId } from './store/slices/clientContextSlice';
+import { baseApi } from './store/api/baseApi';
+const UserManagement = React.lazy(() => import('./Admin/UserManagement'));
+const LocationManagement = React.lazy(() => import('./Admin/LocationManagement.js'));
+const LeaseManagement = React.lazy(() => import('./Admin/LeaseManagement.js'));
+const WellManagement = React.lazy(() => import('./Admin/WellManagement.js'));
+const WarehouseManagement = React.lazy(() => import('./Admin/WarehouseManagement.js'));
+const ChemicalManagement = React.lazy(() => import('./Admin/ChemicalManagement.js'));
+const Pricing = React.lazy(() => import('./Admin/Pricing.js'));
+const ClientManagement = React.lazy(() => import('./Admin/ClientManagement.js'));
+const ShippingPaper = React.lazy(() => import('./WorkOrders/ShippingPapers.js'));
+const ShippingChemicals = React.lazy(() => import('./WorkOrders/ShippingChemicals.js'));
+const Delivery = React.lazy(() => import('./WorkOrders/Delivery.js'));
+const EditDelivery = React.lazy(() => import('./WorkOrders/EditDelivery.js'));
+const Main = React.lazy(() => import('./Dashboard/Main'));
+const WeeklyEarnings = React.lazy(() => import('./Reports/WeeklyEarnings.js'));
+const WarehouseInventory = React.lazy(() => import('./Reports/WarehouseInventory.js'));
+const WarehouseChemical = React.lazy(() => import('./Admin/WarehouseChemical.js'));
+const UserReport = React.lazy(() => import('./Reports/UserReport.js'));
 
-const PAGE_TITLES = [
-  { match: (p) => p === '/', label: 'Dashboard' },
-  { match: (p) => p.startsWith('/usermanagement'), label: 'User Management' },
-  { match: (p) => p.startsWith('/locationmanagment/leasemanagment/wellmanagment'), label: 'Well Management' },
-  { match: (p) => p.startsWith('/locationmanagment/leasemanagment'), label: 'Lease Management' },
-  { match: (p) => p.startsWith('/locationmanagment'), label: 'Location Management' },
-  { match: (p) => p.startsWith('/warehousemanagement'), label: 'Warehouse Management' },
-  { match: (p) => p.startsWith('/warehousechemical'), label: 'Warehouse Chemicals' },
-  { match: (p) => p.startsWith('/chemicalmanagement'), label: 'Product Management' },
-  { match: (p) => p.startsWith('/pricing'), label: 'Pricing' },
-  { match: (p) => p.startsWith('/clientmanagement'), label: 'Client Management' },
-  { match: (p) => p.startsWith('/shippingpapers'), label: 'Shipping Papers' },
-  { match: (p) => p.startsWith('/shippingchemicals'), label: 'Shipping Chemicals' },
-  { match: (p) => p.startsWith('/delivery/editdelivery'), label: 'Edit Delivery' },
-  { match: (p) => p.startsWith('/delivery'), label: 'Delivery' },
-  { match: (p) => p.startsWith('/weeklyearnings'), label: 'Earnings Report' },
-  { match: (p) => p.startsWith('/warehouseInventory'), label: 'Inventory Levels' },
-  { match: (p) => p.startsWith('/userReport'), label: 'User Report' },
-];
-
-function PageTitle({ className }) {
-  const { pathname } = useLocation();
-  const entry = PAGE_TITLES.find((t) => t.match(pathname));
-  return (
-    <Typography component="h1" variant="h6" color="inherit" noWrap className={className}>
-      {entry ? entry.label : 'Chemical Management System'}
-    </Typography>
-  );
-}
-
-const drawerWidth = 260;
-
-const useStyles = makeStyles((theme) => ({
-  root: {
-    display: 'flex',
-    backgroundColor: '#f1f5f9',
-    minHeight: '100vh',
-  },
-  toolbar: {
-    paddingRight: 16,
-    [theme.breakpoints.up('sm')]: {
-      paddingRight: 24,
-    },
-  },
-  toolbarIcon: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: '0 12px 0 16px',
-    borderBottom: '1px solid rgba(148, 163, 184, 0.12)',
-    ...theme.mixins.toolbar,
-  },
-  brand: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: 10,
-    overflow: 'hidden',
-  },
-  drawerToggle: {
-    color: '#94a3b8',
-    padding: 6,
-    '&:hover': {
-      color: '#f8fafc',
-      backgroundColor: 'rgba(148, 163, 184, 0.12)',
-    },
-  },
-  appBar: {
-    zIndex: theme.zIndex.drawer + 1,
-    background: 'linear-gradient(90deg, #0f172a 0%, #1e3a8a 100%)',
-    boxShadow: '0 8px 24px rgba(15, 23, 42, 0.25)',
-    transition: theme.transitions.create(['width', 'margin'], {
-      easing: theme.transitions.easing.sharp,
-      duration: theme.transitions.duration.leavingScreen,
-    }),
-  },
-  appBarShift: {
-    marginLeft: drawerWidth,
-    width: `calc(100% - ${drawerWidth}px)`,
-    transition: theme.transitions.create(['width', 'margin'], {
-      easing: theme.transitions.easing.sharp,
-      duration: theme.transitions.duration.enteringScreen,
-    }),
-  },
-  menuButton: {
-    marginRight: 12,
-    [theme.breakpoints.up('sm')]: {
-      marginRight: 24,
-    },
-  },
-  menuButtonHidden: {
-    display: 'none',
-  },
-  title: {
-    flexGrow: 1,
-    fontWeight: 600,
-    letterSpacing: 0.2,
-  },
-  drawerPaper: {
-    position: 'relative',
-    whiteSpace: 'nowrap',
-    width: drawerWidth,
-    border: 'none',
-    overflowX: 'hidden',
-    background: 'linear-gradient(180deg, #0b1220 0%, #0f172a 55%, #111827 100%)',
-    color: '#e2e8f0',
-    boxSizing: 'border-box',
-    boxShadow: '4px 0 24px rgba(2, 6, 23, 0.25)',
-    transition: theme.transitions.create('width', {
-      easing: theme.transitions.easing.sharp,
-      duration: theme.transitions.duration.enteringScreen,
-    }),
-  },
-  drawerPaperClose: {
-    overflowX: 'hidden',
-    transition: theme.transitions.create('width', {
-      easing: theme.transitions.easing.sharp,
-      duration: theme.transitions.duration.leavingScreen,
-    }),
-    width: theme.spacing(8),
-    [theme.breakpoints.up('sm')]: {
-      width: theme.spacing(9),
-    },
-  },
-  drawerList: {
-    paddingTop: theme.spacing(1),
-    paddingBottom: theme.spacing(1.5),
-  },
-  appBarSpacer: theme.mixins.toolbar,
-  content: {
-    flexGrow: 1,
-    height: '100vh',
-    overflow: 'auto',
-    backgroundColor: '#f8fafc',
-  },
-  signOutButton: {
-    borderRadius: 10,
-    textTransform: 'none',
-    fontWeight: 600,
-    paddingLeft: theme.spacing(1.75),
-    paddingRight: theme.spacing(1.75),
-    minWidth: 96,
-  },
-}));
-
-export default function Home() {
-  const classes = useStyles();
+function Workspace() {
   const theme = useTheme();
+  const small = useMediaQuery(theme.breakpoints.down('sm'));
   const dispatch = useDispatch();
-  const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'));
+  const { user } = useAuth();
+  const location = useLocation();
   const open = useSelector(selectSidebarOpen);
-
-  React.useEffect(() => {
-    dispatch(setSidebar(!isSmallScreen));
-  }, [isSmallScreen, dispatch]);
-
-  const handleDrawerOpen = () => dispatch(setSidebar(true));
-  const handleDrawerClose = () => dispatch(setSidebar(false));
-  const handleLogout = () => dispatch(logout());
-
-  return (
-    <Router>
-    <div className={classes.root}>
-      <CssBaseline />
+  const clientId = useSelector(selectActiveClientId);
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [accountAnchor, setAccountAnchor] = useState(null);
+  const [signingOut, setSigningOut] = useState(false);
+  const confirmation = useConfirmation();
+  const currentRoute = routeFor(location.pathname);
+  const displayName = user?.fullname || user?.name || user?.username || 'Account';
+  const preferenceKey = 'cms-sidebar:' + (user?.id || 'current');
+  useEffect(() => {
+    try { const saved = localStorage.getItem(preferenceKey); if (saved !== null) dispatch(setSidebar(saved === 'true')); } catch {}
+  }, [dispatch, preferenceKey]);
+  useEffect(() => { try { localStorage.setItem(preferenceKey, String(open)); } catch {} }, [open, preferenceKey]);
+  useEffect(() => {
+    document.title = (currentRoute?.title || 'Page not found') + ' · ' + APP_TITLE;
+    setMobileOpen(false);
+  }, [location.pathname, currentRoute]);
+  const signOut = async () => {
+    if (signingOut || !(await confirmation.discard())) return;
+    setSigningOut(true);
+    await dispatch(logout());
+    dispatch(baseApi.util.resetApiState());
+  };
+  const expanded = small || open;
+  return <div className={'app-shell' + (!open ? ' sidebar-collapsed' : '')}>
+    <a href="#main-content" className="skip-link">Skip to content</a>
+    <AppBar position="fixed" color="default" elevation={0} className="workspace-topbar">
+      <Toolbar className="workspace-toolbar">
+        {(small || !open) && <IconButton aria-label="Open navigation" onClick={() => small ? setMobileOpen(true) : dispatch(setSidebar(true))}><MenuIcon /></IconButton>}
+        <Typography component="span" variant="body2" color="textSecondary" className="workspace-section">{currentRoute?.group || 'Workspace'}</Typography>
+        <div className="topbar-spacer" />
+        <ClientSwitcher />
+        <Button aria-label={'Account: ' + displayName} aria-controls={accountAnchor ? 'account-menu' : undefined} aria-haspopup="true" onClick={event => setAccountAnchor(event.currentTarget)} className="account-button">
+          <Avatar component="span" className="account-avatar">{displayName.slice(0, 1).toUpperCase()}</Avatar><span className="account-name">{displayName}</span><ExpandMoreIcon fontSize="small" />
+        </Button>
+        <Menu id="account-menu" anchorEl={accountAnchor} open={Boolean(accountAnchor)} onClose={() => setAccountAnchor(null)}>
+          <MenuItem disabled>{displayName} · {user?.role}</MenuItem><Divider />
+          <MenuItem onClick={signOut} disabled={signingOut || confirmation.saving}>{signingOut ? 'Signing out…' : 'Sign out'}</MenuItem>
+        </Menu>
+      </Toolbar>
+    </AppBar>
+    <Drawer variant={small ? 'temporary' : 'permanent'} open={small ? mobileOpen : true} onClose={() => setMobileOpen(false)} classes={{ paper: 'workspace-sidebar' }} ModalProps={{ keepMounted: true }}>
+      <div className="workspace-brand"><LogoMark size={34} />{expanded && <span>CMS<span className="brand-caption">Operations workspace</span></span>}{!small && open && <IconButton aria-label="Collapse navigation" onClick={() => dispatch(setSidebar(false))}><ChevronLeftIcon /></IconButton>}</div>
+      <nav aria-label="Main navigation"><List component="div"><MainListItems isCollapsed={!expanded} /></List></nav>
+      {expanded && <div className="sidebar-footer"><span className="workspace-dot" /> Chemical Management System</div>}
+    </Drawer>
+    <main id="main-content" tabIndex={-1} className="workspace-content" key={(user?.id || '') + ':' + (clientId || 'home')}>
       <ToastProvider />
-      <AppBar position="absolute" className={clsx(classes.appBar, !isSmallScreen && open && classes.appBarShift)}>
-        <Toolbar className={classes.toolbar}>
-          <IconButton
-            edge="start"
-            color="inherit"
-            aria-label="open drawer"
-            onClick={handleDrawerOpen}
-            className={clsx(classes.menuButton, !isSmallScreen && open && classes.menuButtonHidden)}
-          >
-            <MenuIcon />
-          </IconButton>
-          <PageTitle className={classes.title} />
-          <ClientSwitcher />
-          <Button onClick={handleLogout} variant="contained" color="secondary" className={classes.signOutButton}>
-            SignOut
-          </Button>
-        </Toolbar>
-      </AppBar>
-      <Drawer
-        variant={isSmallScreen ? 'temporary' : 'permanent'}
-        onClose={handleDrawerClose}
-        ModalProps={{
-          keepMounted: true,
-        }}
-        classes={{
-          paper: clsx(classes.drawerPaper, !open && classes.drawerPaperClose),
-        }}
-        open={open}
-      >
-        <div className={classes.toolbarIcon} style={{ justifyContent: open ? 'space-between' : 'center' }}>
-          {open && (
-            <div className={classes.brand}>
-              <LogoMark size={38} glow />
-            </div>
-          )}
-          <IconButton onClick={handleDrawerClose} className={classes.drawerToggle}>
-            <ChevronLeftIcon fontSize="small" />
-          </IconButton>
-        </div>
-        <List className={classes.drawerList}>
-          <MainListItems isCollapsed={!isSmallScreen && !open} />
-        </List>
-      </Drawer>
-      <main className={classes.content}>
-        <div className={classes.appBarSpacer} />
-        <Switcher>
+      <React.Suspense fallback={<QueryState loading />}><Switcher>
           <Route exact path="/">
             <Main></Main>
           </Route>
@@ -302,9 +145,13 @@ export default function Home() {
           <Route exact path="/userReport">
             <UserReport></UserReport>
           </Route>
-        </Switcher>
-      </main>
-    </div>
-    </Router>
-  );
+
+        <Route><QueryState title="Page not found" description="Choose a page from the navigation to continue." to="/" actionLabel="Go to dashboard" /></Route>
+      </Switcher></React.Suspense>
+    </main>
+  </div>;
+}
+export default function Home() {
+  const { confirm } = useConfirmation();
+  return <Router getUserConfirmation={(message, callback) => { confirm({ title: 'Leave unsaved changes?', message, confirmLabel: 'Discard changes', danger: true }).then(callback); }}><Workspace /></Router>;
 }

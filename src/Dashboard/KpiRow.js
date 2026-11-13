@@ -1,4 +1,7 @@
 import React, { useMemo } from 'react';
+import { useAuth } from '../config/AuthContext';
+import { linkTo } from '../config/routes';
+import { dateString } from '../config/useDateRange';
 import { useSelector } from 'react-redux';
 import Grid from '@material-ui/core/Grid';
 import OilBarrelIcon from '@material-ui/icons/LocalShipping';
@@ -18,8 +21,10 @@ function withinRange(iso, start, end) {
 }
 
 export default function KpiRow() {
+  const { isAdmin } = useAuth();
   const dateRange = useSelector(selectDateRange);
   const companyId = useSelector(selectCompanyId);
+  const dateFilters = { from: dateString(dateRange.startDate), to: dateString(dateRange.endDate), companyId: companyId || undefined };
 
   const wells = useGetWellsQuery({ limit: 1, company: companyId || undefined });
   const deliveries = useGetDeliveriesQuery({ limit: 500, company: companyId || undefined });
@@ -46,13 +51,13 @@ export default function KpiRow() {
     <Grid container spacing={3}>
       <Grid item xs={12} sm={6} md={3}>
         <KpiCard
-          label="Active Wells"
+          label="Total wells"
           value={wells.data?.totalItems}
           hint={companyId ? 'Filtered by company' : 'All companies'}
           icon={<LocationIcon fontSize="small" />}
           accent="#dbeafe"
           accentText="#1e40af"
-          to="/locationmanagment"
+          to={isAdmin ? "/locationmanagment" : undefined}
           loading={wells.isFetching}
           error={wells.error}
         />
@@ -65,7 +70,7 @@ export default function KpiRow() {
           icon={<OilBarrelIcon fontSize="small" />}
           accent="#dcfce7"
           accentText="#166534"
-          to="/delivery"
+          to={linkTo("/delivery", dateFilters)}
           loading={deliveries.isFetching}
           error={deliveries.error}
         />
@@ -74,11 +79,11 @@ export default function KpiRow() {
         <KpiCard
           label="Shipping Papers (range)"
           value={shippingInRange}
-          hint="Within selected date range"
+          hint="All shipping papers in selected dates"
           icon={<DescriptionIcon fontSize="small" />}
           accent="#ede9fe"
           accentText="#6d28d9"
-          to="/shippingpapers"
+          to={linkTo("/shippingpapers", { from: dateFilters.from, to: dateFilters.to })}
           loading={shippingPapers.isFetching}
           error={shippingPapers.error}
         />
@@ -91,7 +96,7 @@ export default function KpiRow() {
           icon={<HourglassIcon fontSize="small" />}
           accent="#fee2e2"
           accentText="#b91c1c"
-          to="/delivery"
+          to={linkTo("/delivery", { active: 0, companyId: companyId || undefined })}
           loading={pending.isFetching}
           error={pending.error}
         />

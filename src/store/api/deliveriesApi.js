@@ -12,7 +12,7 @@ export const deliveriesApi = baseApi.injectEndpoints({
         params.set('limit', limit);
         if (company) params.set('company', company);
         if (active !== undefined && active !== null) params.set('active', active);
-        return { url: `/api/deliveries?${params.toString()}` };
+        return { url: `/api/deliveries?${params.toString()}`, allPages: !page && limit >= 100 };
       },
       providesTags: (result) =>
         result?.data
@@ -44,7 +44,7 @@ export const deliveriesApi = baseApi.injectEndpoints({
         if (page) params.set('page', page);
         params.set('limit', limit);
         if (delivery) params.set('delivery', delivery);
-        return { url: `/api/delivery-chemicals?${params.toString()}` };
+        return { url: `/api/delivery-chemicals?${params.toString()}`, allPages: !page && limit >= 100 };
       },
       providesTags: (result) =>
         result?.data
