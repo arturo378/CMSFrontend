@@ -22,6 +22,7 @@ import {
   useDeactivateUserMutation,
 } from '../store/api/usersApi';
 import { showToast } from '../store/slices/uiSlice';
+import { DEMO_MODE } from '../config/demoMode';
 
 export default function UserManagement() {
   const dispatch = useDispatch();
@@ -108,10 +109,10 @@ export default function UserManagement() {
             onClick: async (event, rowData) => {
               if (window.confirm(`Email a password reset code to ${rowData.fullname} at ${rowData.email}?`)) {
                 try {
-                  await resetPassword(rowData.id).unwrap();
+                  const result = await resetPassword(rowData.id).unwrap();
                   dispatch(showToast({
                     severity: 'success',
-                    message: `A 6-digit reset code has been emailed to ${rowData.email}. It expires in 10 minutes.`,
+                    message: DEMO_MODE ? result.message : `A 6-digit reset code has been emailed to ${rowData.email}. It expires in 10 minutes.`,
                   }));
                 } catch (err) {
                   dispatch(showToast({

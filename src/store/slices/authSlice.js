@@ -1,19 +1,14 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import api from '../../config/api';
+import api, { getCurrentUser, getAccessToken, storeAuthSession, clearAuthSession } from '../../config/api';
 import { clearActiveClientId } from '../../config/clientContext';
-
-function readUserFromStorage() {
-  try {
-    const raw = localStorage.getItem('currentUser');
-    return raw ? JSON.parse(raw) : null;
-  } catch {
-    return null;
-  }
-}
+import { DEMO_MODE, DEMO_TOKEN } from '../../config/demoMode';
+import { clearActiveClient } from './clientContextSlice';
+import { resetFilters } from './dashboardFiltersSlice';
+import { baseApi } from '../api/baseApi';
 
 const initialState = {
-  user: readUserFromStorage(),
-  accessToken: localStorage.getItem('accessToken') || null,
+  user: getCurrentUser(),
+  accessToken: DEMO_MODE ? DEMO_TOKEN : getAccessToken() || null,
   status: 'idle',
   error: null,
 };
@@ -23,8 +18,7 @@ export const login = createAsyncThunk(
   async ({ email, password }, { rejectWithValue }) => {
     try {
       const res = await api.post('/api/auth/login', { email, password });
-      localStorage.setItem('accessToken', res.accessToken);
-      localStorage.setItem('currentUser', JSON.stringify(res.user));
+      storeAuthSession(res);
       return { accessToken: res.accessToken, user: res.user };
     } catch (err) {
       return rejectWithValue(err?.message || 'Login failed');
@@ -37,8 +31,7 @@ export const register = createAsyncThunk(
   async ({ name, username, fullname, email, password, clientCode }, { rejectWithValue }) => {
     try {
       const res = await api.post('/api/auth/register', { name, username, fullname, email, password, clientCode });
-      localStorage.setItem('accessToken', res.accessToken);
-      localStorage.setItem('currentUser', JSON.stringify(res.user));
+      storeAuthSession(res);
       return { accessToken: res.accessToken, user: res.user };
     } catch (err) {
       return rejectWithValue(err?.message || 'Registration failed');
@@ -46,17 +39,19 @@ export const register = createAsyncThunk(
   }
 );
 
-export const logout = createAsyncThunk('auth/logout', async () => {
+export const logout = createAsyncThunk('auth/logout', async (_, { dispatch }) => {
   try {
     await api.post('/api/auth/logout');
   } catch {
     // fire-and-forget — clear client state regardless
   }
-  localStorage.removeItem('accessToken');
-  localStorage.removeItem('currentUser');
+  clearAuthSession();
   // Otherwise a superadmin's "acting as" override survives into the next
   // login on this browser, silently scoping a different account's session.
   clearActiveClientId();
+  dispatch(clearActiveClient());
+  dispatch(resetFilters());
+  dispatch(baseApi.util.resetApiState());
 });
 
 const authSlice = createSlice({

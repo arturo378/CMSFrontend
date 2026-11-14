@@ -2,6 +2,39 @@
 
 Chemical Management System - Frontend Application
 
+## Demo mode
+
+This branch enables `REACT_APP_DEMO_MODE=true` in `.env`. Run `npm start` to
+open the application without starting or configuring a backend. `npm run build`
+also produces a standalone demo build suitable for static hosting.
+
+The demo opens as **Demo Superuser** with the application's `superadmin` role,
+including administration, client management, client switching, work orders,
+chemical details, charts, reports, and exports. No login credentials are needed.
+After signing out, choose **Enter demo** to return.
+
+Two fictional clients have separate companies, leases, wells, warehouses,
+products, prices, users, deliveries, shipping papers, and inventory. Dates are
+relative to the day the data is first created. Choose a company on the dashboard
+to populate its revenue and chemical charts; reports have their usual company,
+warehouse, or user selectors.
+
+Add, edit, delete, and deactivate actions use browser-local sample data. Reports
+are calculated from that data, including completed shipping transfers in warehouse
+inventory. Changes survive reloads. **Reset demo data** restores the sample records,
+refreshes their dates, clears the demo client selection, and returns to the dashboard.
+The demo's storage is separate from real login credentials and client selections.
+The demo superuser and home client remain active to preserve access.
+
+All API requests stay in the browser while demo mode is enabled, including
+unsupported requests. Password-reset actions are simulated and send no email.
+Map tiles and the existing icon font still use public internet services.
+
+To use the real backend again, set `REACT_APP_DEMO_MODE=false` in `.env.local`
+(or the build environment), configure `REACT_APP_API_URL`, and restart/rebuild.
+This is a build-time setting; changing it requires restarting the development server
+or rebuilding the static bundle. A demo build always grants local superadmin access.
+
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
 Dependency installation, `npm start`, and `npm run build` run

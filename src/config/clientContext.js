@@ -3,7 +3,9 @@
 // runs outside React — can read it synchronously on every request, the same
 // way it already reads accessToken.
 
-const KEY = 'activeClientId';
+import { sessionKey } from './demoMode';
+
+const KEY = sessionKey('activeClientId');
 
 export const getActiveClientId = () => localStorage.getItem(KEY) || null;
 
