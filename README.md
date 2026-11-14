@@ -1,111 +1,112 @@
-# CMSFrontend
+# Chemical Management System
 
-Chemical Management System - Frontend Application
+A React application for managing chemical inventory, field deliveries, warehouse transfers, and operational reporting across multiple clients.
+
+The application supports both a standalone demonstration with sample data and an authenticated deployment connected to a REST API.
+
+## Features
+
+- **Operations dashboard:** Delivery metrics, revenue trends, chemical usage, inventory levels, recent activity, and a map of well locations.
+- **Work orders:** Delivery tracking, shipping papers, chemical quantities, completion status, and location details.
+- **Inventory and pricing:** Warehouses, chemical products, stock records, and company-specific prices.
+- **Location management:** Companies, leases, and wells with GPS coordinates.
+- **Reporting:** Earnings and user activity reports with date filters, warehouse inventory reports, and Excel exports.
+- **Administration:** User management, role-based access, and platform superadmin controls for managing and switching clients.
+
+## Getting started
+
+### Requirements
+
+- Node.js 23 or later, as specified in `package.json`.
+- npm.
+
+From the repository root:
+
+```sh
+npm ci
+npm start
+```
+
+Open [localhost:3000](http://localhost:3000). The repository enables **demo mode** by default, so a backend and login credentials are not required.
 
 ## Demo mode
 
-This branch enables `REACT_APP_DEMO_MODE=true` in `.env`. Run `npm start` to
-open the application without starting or configuring a backend. `npm run build`
-also produces a standalone demo build suitable for static hosting.
+The demo opens as **Demo Superuser** with the application's highest permission level, `superadmin`. Two fictional clients—Permian Chemical Services and Eagle Ford Chemical Services—have separate users, companies, leases, wells, warehouses, products, prices, and work orders.
 
-The demo opens as **Demo Superuser** with the application's `superadmin` role,
-including administration, client management, client switching, work orders,
-chemical details, charts, reports, and exports. No login credentials are needed.
-After signing out, choose **Enter demo** to return.
+All API operations run locally in the browser. You can create and edit records, manage chemicals, switch clients, and generate reports using the same screens as a connected deployment. Changes persist in browser storage, separately from real account credentials and client selections. Password-reset actions are simulated and send no email.
 
-Two fictional clients have separate companies, leases, wells, warehouses,
-products, prices, users, deliveries, shipping papers, and inventory. Dates are
-relative to the day the data is first created. Choose a company on the dashboard
-to populate its revenue and chemical charts; reports have their usual company,
-warehouse, or user selectors.
+To explore the application:
 
-Add, edit, delete, and deactivate actions use browser-local sample data. Reports
-are calculated from that data, including completed shipping transfers in warehouse
-inventory. Changes survive reloads. **Reset demo data** restores the sample records,
-refreshes their dates, clears the demo client selection, and returns to the dashboard.
-The demo's storage is separate from real login credentials and client selections.
-The demo superuser and home client remain active to preserve access.
+1. Select a company on the dashboard to populate the revenue and chemical charts.
+2. Open a delivery or shipping paper to view its location and manage its chemicals.
+3. Choose a company, warehouse, or user in the reports to review and export the corresponding data.
+4. Use the client selector in the header to explore the second client's records.
 
-All API requests stay in the browser while demo mode is enabled, including
-unsupported requests. Password-reset actions are simulated and send no email.
-Map tiles and the existing icon font still use public internet services.
+Select **Reset demo data** to restore the sample records, refresh their dates, clear the selected client, and return to the dashboard. The demo superuser and home client remain active to preserve access. After signing out, select **Enter demo** to return.
 
-To use the real backend again, set `REACT_APP_DEMO_MODE=false` in `.env.local`
-(or the build environment), configure `REACT_APP_API_URL`, and restart/rebuild.
-This is a build-time setting; changing it requires restarting the development server
-or rebuilding the static bundle. A demo build always grants local superadmin access.
+Map tiles and the icon font use public internet services, even in demo mode.
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+## Connecting a backend
 
-Dependency installation, `npm start`, and `npm run build` run
-`scripts/patch-material-table.js` to correct the `defaultExpanded` prop-type
-validator in material-table 1.63.0. Applying the patch also clears Webpack's
-cached dependency bundles. Restart a running development server after the
-patch is first applied.
+Create a `.env.local` file in the repository root:
 
-## Available Scripts
+```dotenv
+REACT_APP_DEMO_MODE=false
+REACT_APP_API_URL=http://localhost:3001
+```
 
-In the project directory, you can run:
+Start the backend separately, then restart the frontend. Sign in with an account provided by that backend.
 
-### `npm start`
+The API client sends Bearer access tokens and includes cookies for session refresh. For deployments with separate frontend and API origins, the backend must allow the frontend origin and credentialed requests.
 
-Runs the app in the development mode.<br />
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+Backend-connected deployments use the `user`, `admin`, and `superadmin` roles. The backend enforces authorization; frontend route and navigation controls reflect those permissions.
 
-The page will reload if you make edits.<br />
-You will also see any lint errors in the console.
+## Configuration
 
-### `npm test`
+| Variable | Repository default | Purpose |
+| --- | --- | --- |
+| `REACT_APP_DEMO_MODE` | `true` | Runs API operations locally and grants demo superadmin access. Set to `false` for backend authentication. |
+| `REACT_APP_API_URL` | `http://localhost:3001` | REST API base URL, used when demo mode is disabled. |
+| `PUBLIC_URL` | `.` | Base path for generated static assets. |
+| `GENERATE_SOURCEMAP` | `false` | Controls source map generation for production builds. |
 
-Launches the test runner in the interactive watch mode.<br />
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+Use `.env.local` for local overrides; it is excluded from version control. Configuration is read when the development server starts or the production bundle is built. Restart or rebuild after changing it.
 
-### `npm run build`
+## Development
 
-Builds the app for production to the `build` folder.<br />
-It correctly bundles React in production mode and optimizes the build for the best performance.
+| Command | Purpose |
+| --- | --- |
+| `npm start` | Starts the development server with automatic reload. |
+| `npm test` | Runs tests in interactive watch mode. |
+| `npm test -- --watchAll=false --runInBand` | Runs the test suite once. |
+| `npm run build` | Creates the production bundle in `build/`. |
 
-The build is minified and the filenames include the hashes.<br />
-Your app is ready to be deployed!
+The test suite covers demo authentication, permission checks, populated screens, report filters, local data operations, client isolation, and backend request behavior.
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+### Technology
 
-### `npm run eject`
+React 16 and React Router 5 provide the application shell. Material-UI 4 and material-table provide interface components; Redux Toolkit and RTK Query manage shared state and API data. Charts use Recharts, maps use Leaflet, and spreadsheet exports use ExcelJS.
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+### Source layout
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+```text
+src/
+  Admin/         User, client, location, product, warehouse, and pricing management
+  Dashboard/     Metrics, charts, filters, maps, and recent activity
+  Reports/       Earnings, inventory, and user activity reports
+  WorkOrders/    Deliveries, shipping papers, and chemical details
+  components/    Shared navigation, route guards, and interface components
+  config/        API client, authentication, permissions, and demo configuration
+  demo/          Sample data, local API implementation, and demo tests
+  store/         Redux slices and RTK Query endpoints
+```
 
-Instead, it will copy all the configuration files and the transitive dependencies (Webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+### Dependency compatibility
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+Installation, startup, and production builds run [scripts/patch-material-table.js](scripts/patch-material-table.js). The script fixes the `defaultExpanded` prop-type validator in material-table 1.63.0 and clears affected Webpack caches when the patch is applied. Restart an existing development server after the patch is first applied.
 
-## Learn More
+## Deployment
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+Build with the configuration intended for the target environment, then publish the contents of `build/` to a static host. For hosting at the domain root, set `PUBLIC_URL=/` before building. Configure the host to serve `index.html` for application routes so direct links and page refreshes work.
 
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/code-splitting
-
-### Analyzing the Bundle Size
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size
-
-### Making a Progressive Web App
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app
-
-### Advanced Configuration
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/advanced-configuration
-
-### Deployment
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/deployment
-
-### `npm run build` fails to minify
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify
+A demo build runs without an API server and always grants local superadmin access. For an authenticated deployment, set `REACT_APP_DEMO_MODE=false` and configure `REACT_APP_API_URL` before building.
