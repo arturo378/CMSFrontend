@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import api, { getCurrentUser } from './api';
+import api, { getCurrentUser, storeCurrentUser } from './api';
 import { isAdminUser, isSuperAdminUser } from './permissions';
 import { clearActiveClientId } from './clientContext';
 
@@ -24,7 +24,7 @@ export function AuthProvider({ children }) {
         // session (or a role downgrade) would otherwise keep sending
         // X-Client-Id and get rejected with FORBIDDEN_CLIENT_HEADER.
         if (!isSuperAdminUser(res.user)) clearActiveClientId();
-        localStorage.setItem('currentUser', JSON.stringify(res.user));
+        storeCurrentUser(res.user);
         setUser(res.user);
       })
       .catch((err) => {

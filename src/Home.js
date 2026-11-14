@@ -38,6 +38,8 @@ import ToastProvider from './components/ToastProvider';
 import AdminRoute from './components/AdminRoute';
 import SuperAdminRoute from './components/SuperAdminRoute';
 import ClientSwitcher from './components/ClientSwitcher';
+import DemoBanner from './components/DemoBanner';
+import { DEMO_MODE } from './config/demoMode';
 import { logout } from './store/slices/authSlice';
 import { selectSidebarOpen, setSidebar } from './store/slices/uiSlice';
 
@@ -250,6 +252,7 @@ export default function Home() {
       </Drawer>
       <main className={classes.content}>
         <div className={classes.appBarSpacer} />
+        {DEMO_MODE && <DemoBanner />}
         <Switcher>
           <Route exact path="/">
             <Main></Main>

@@ -3,6 +3,8 @@
 // Refresh token is stored in an httpOnly cookie by the backend automatically.
 
 import { getActiveClientId, clearActiveClientId } from './clientContext';
+import { DEMO_MODE, DEMO_USER, sessionKey } from './demoMode';
+import { demoRequest } from '../demo/api';
 
 const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:3001';
 
@@ -21,8 +23,7 @@ function normalizeIds(data) {
 }
 
 function forceLogout() {
-  localStorage.removeItem('accessToken');
-  localStorage.removeItem('currentUser');
+  clearAuthSession();
   clearActiveClientId();
   window.location.reload();
 }
@@ -57,6 +58,8 @@ async function refreshAccessToken() {
 }
 
 async function request(method, path, body, _isRetry = false) {
+  if (DEMO_MODE) return demoRequest(method, path, body, getActiveClientId());
+
   const headers = { 'Content-Type': 'application/json' };
   const token = localStorage.getItem('accessToken');
   if (token) headers['Authorization'] = `Bearer ${token}`;
@@ -140,12 +143,33 @@ const api = {
 };
 
 export const getCurrentUser = () => {
-  const raw = localStorage.getItem('currentUser');
-  return raw ? JSON.parse(raw) : null;
+  if (DEMO_MODE) return { ...DEMO_USER };
+  try {
+    const raw = localStorage.getItem(sessionKey('currentUser'));
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+};
+
+export const getAccessToken = () => localStorage.getItem(sessionKey('accessToken'));
+
+export const storeAuthSession = ({ accessToken, user }) => {
+  localStorage.setItem(sessionKey('accessToken'), accessToken);
+  storeCurrentUser(user);
+};
+
+export const storeCurrentUser = (user) => {
+  localStorage.setItem(sessionKey('currentUser'), JSON.stringify(user));
+};
+
+export const clearAuthSession = () => {
+  localStorage.removeItem(sessionKey('accessToken'));
+  localStorage.removeItem(sessionKey('currentUser'));
 };
 
 export const isAuthenticated = () => {
-  return !!localStorage.getItem('accessToken');
+  return DEMO_MODE || !!getAccessToken();
 };
 
 export default api;

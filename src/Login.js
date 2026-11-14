@@ -5,6 +5,7 @@ import { APP_TITLE } from "./config/appInfo";
 import LogoMark from "./components/LogoMark";
 import ForgotPassword from "./ForgotPassword";
 import Register from "./Register";
+import { DEMO_MODE } from "./config/demoMode";
 import { login, selectAuthError, selectAuthStatus, clearAuthError } from "./store/slices/authSlice";
 
 import "./styles/login/Login.css";
@@ -26,6 +27,24 @@ export default function Login() {
     event.preventDefault();
     dispatch(clearAuthError());
     dispatch(login({ email, password }));
+  }
+
+  if (DEMO_MODE) {
+    return (
+      <div className="Login">
+        <div className="login-card">
+          <div className="login-header">
+            <div className="login-logo"><LogoMark size={64} glow /></div>
+            <h1>{APP_TITLE}</h1>
+            <p>Explore the demo with full superuser access.</p>
+            <p>Sample data and changes stay in this browser.</p>
+          </div>
+          <Button className="login-button" block size="lg" onClick={() => dispatch(login({}))}>
+            Enter demo
+          </Button>
+        </div>
+      </div>
+    );
   }
 
   if (showForgot) {
