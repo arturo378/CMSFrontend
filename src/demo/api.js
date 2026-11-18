@@ -35,6 +35,7 @@ function persist() {
 export function resetDemoData() {
   database = createDemoDatabase();
   persist();
+  try { localStorage.removeItem('cms.demo.mobile.session'); } catch { /* Storage may be disabled. */ }
 }
 
 const relations = {
@@ -78,7 +79,7 @@ function report(name, params, client) {
       quantities.set(key, item);
     };
     scoped('warehouse-chemicals').forEach((item) => add(item.warehouse, item.chemical, item.quantity));
-    scoped('shipping-papers').filter((paper) => Number(paper.active) === 1).forEach((paper) => {
+    scoped('shipping-papers').filter((paper) => Number(paper.active) === 1 && !paper.inventoryApplied).forEach((paper) => {
       const origin = scoped('warehouses').find((w) => w.warehousenumber === paper.originwarehousenumber);
       const destination = scoped('warehouses').find((w) => w.warehousenumber === paper.destinationwarehousenumber);
       scoped('shipping-chemicals').filter((item) => item.shippingPaper === paper.id).forEach((item) => {

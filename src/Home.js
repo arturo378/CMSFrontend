@@ -42,8 +42,10 @@ import DemoBanner from './components/DemoBanner';
 import { DEMO_MODE } from './config/demoMode';
 import { logout } from './store/slices/authSlice';
 import { selectSidebarOpen, setSidebar } from './store/slices/uiSlice';
+import MobileDemo from './demo/MobileDemo';
 
 const PAGE_TITLES = [
+  { match: (p) => p.startsWith('/mobile-demo'), label: 'Mobile App Demo' },
   { match: (p) => p === '/', label: 'Dashboard' },
   { match: (p) => p.startsWith('/usermanagement'), label: 'User Management' },
   { match: (p) => p.startsWith('/locationmanagment/leasemanagment/wellmanagment'), label: 'Well Management' },
@@ -137,6 +139,7 @@ const useStyles = makeStyles((theme) => ({
   },
   title: {
     flexGrow: 1,
+    minWidth: 0,
     fontWeight: 600,
     letterSpacing: 0.2,
   },
@@ -173,6 +176,7 @@ const useStyles = makeStyles((theme) => ({
   appBarSpacer: theme.mixins.toolbar,
   content: {
     flexGrow: 1,
+    minWidth: 0,
     height: '100vh',
     overflow: 'auto',
     backgroundColor: '#f8fafc',
@@ -184,6 +188,11 @@ const useStyles = makeStyles((theme) => ({
     paddingLeft: theme.spacing(1.75),
     paddingRight: theme.spacing(1.75),
     minWidth: 96,
+    [theme.breakpoints.down('xs')]: {
+      minWidth: 72,
+      paddingLeft: 8,
+      paddingRight: 8,
+    },
   },
 }));
 
@@ -254,6 +263,7 @@ export default function Home() {
         <div className={classes.appBarSpacer} />
         {DEMO_MODE && <DemoBanner />}
         <Switcher>
+          {DEMO_MODE && <Route exact path="/mobile-demo"><MobileDemo /></Route>}
           <Route exact path="/">
             <Main></Main>
           </Route>

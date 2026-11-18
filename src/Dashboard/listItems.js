@@ -16,6 +16,8 @@ import ShowChartIcon from '@material-ui/icons/ShowChart';
 import AssignmentIndIcon from '@material-ui/icons/AssignmentInd';
 import StorageIcon from '@material-ui/icons/Storage';
 import DomainIcon from '@material-ui/icons/Domain';
+import PhoneIphoneIcon from '@material-ui/icons/PhoneIphone';
+import { DEMO_MODE } from '../config/demoMode';
 import { Link } from 'react-router-dom';
 import { useLocation } from 'react-router-dom';
 import { useAuth } from '../config/AuthContext';
@@ -79,6 +81,11 @@ const useStyles = makeStyles(() => ({
 }));
 
 const menuSections = [
+  {
+    header: 'Try the app',
+    demoOnly: true,
+    items: [{ label: 'Mobile App Demo', to: '/mobile-demo', icon: PhoneIphoneIcon }],
+  },
   {
     header: null,
     items: [
@@ -172,7 +179,7 @@ export function MainListItems({ isCollapsed }) {
   const { isAdmin, isSuperAdmin } = useAuth();
 
   const visibleSections = menuSections.filter(
-    (section) => (!section.adminOnly || isAdmin) && (!section.superadminOnly || isSuperAdmin)
+    (section) => (!section.demoOnly || DEMO_MODE) && (!section.adminOnly || isAdmin) && (!section.superadminOnly || isSuperAdmin)
   );
 
   return (

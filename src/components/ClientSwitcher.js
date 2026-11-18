@@ -10,13 +10,18 @@ import { baseApi } from '../store/api/baseApi';
 import { setActiveClient, clearActiveClient, selectActiveClientId } from '../store/slices/clientContextSlice';
 import { resetFilters } from '../store/slices/dashboardFiltersSlice';
 
-const useStyles = makeStyles(() => ({
+const useStyles = makeStyles((theme) => ({
   root: {
     minWidth: 180,
     marginRight: 16,
     borderRadius: 8,
     backgroundColor: 'rgba(255, 255, 255, 0.1)',
     padding: '2px 10px',
+    [theme.breakpoints.down('xs')]: {
+      minWidth: 110,
+      maxWidth: 140,
+      marginRight: 8,
+    },
   },
   select: {
     color: '#fff',

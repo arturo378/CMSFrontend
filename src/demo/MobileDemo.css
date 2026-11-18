@@ -1,0 +1,39 @@
+.mobile-showcase { display: grid; grid-template-columns: minmax(260px, 1fr) minmax(320px, 430px); gap: 56px; max-width: 1160px; margin: 0 auto; padding: 44px 36px 56px; align-items: start; color: #0f172a; text-align: left; }
+.mobile-showcase-copy { padding-top: 22px; }
+.mobile-showcase-eyebrow { color: #2563eb; font-size: 12px; font-weight: 800; letter-spacing: 2px; }
+.mobile-showcase h2 { font-size: clamp(30px, 3.5vw, 48px); font-weight: 800; line-height: 1.12; letter-spacing: -1.5px; margin: 16px 0 20px; }
+.mobile-showcase-lead { color: #475569; font-size: 16px; line-height: 1.8; max-width: 480px; }
+.mobile-showcase-steps { list-style: none; counter-reset: demo-step; padding: 0; margin: 30px 0; }
+.mobile-showcase-steps li { position: relative; counter-increment: demo-step; padding: 0 0 22px 45px; }
+.mobile-showcase-steps li::before { content: counter(demo-step); position: absolute; left: 0; top: 0; height: 30px; width: 30px; background: #dbeafe; border-radius: 50%; color: #1d4ed8; text-align: center; line-height: 30px; font-weight: 700; }
+.mobile-showcase-steps strong { display: block; font-size: 15px; margin-bottom: 5px; }
+.mobile-showcase-steps span { display: block; color: #64748b; font-size: 14px; line-height: 1.6; }
+.mobile-showcase-activity { padding: 15px; background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 12px; font-size: 13px; line-height: 1.6; }
+.demo-status-dot { display: inline-block; width: 8px; height: 8px; margin-right: 8px; border-radius: 50%; background: #f59e0b; }
+.demo-status-dot.connected { background: #16a34a; }
+.mobile-showcase-links { display: flex; flex-wrap: wrap; gap: 18px; margin-top: 22px; font-size: 13px; font-weight: 600; }
+.mobile-showcase-links a, .mobile-showcase-open { color: #1d4ed8; }
+.mobile-showcase-note { margin-top: 24px; color: #64748b; font-size: 12px; line-height: 1.7; }
+.mobile-showcase-device { min-width: 0; text-align: center; }
+.demo-phone { position: relative; isolation: isolate; width: 100%; max-width: 406px; height: 816px; padding: 11px; border-radius: 52px; background: linear-gradient(135deg, #a2aab5 0%, #454c57 12%, #20242b 38%, #707985 74%, #303640 100%); border: 1px solid #7c8592; box-shadow: 0 30px 65px -25px #0f172a70, 0 8px 18px -8px #0f172a50, inset 0 0 0 1px #ffffff40; margin: 0 auto 24px; }
+.demo-phone::before { content: ''; position: absolute; inset: 3px; border: 2px solid #080a0e; border-radius: 48px; box-shadow: inset 0 0 0 1px #ffffff14; pointer-events: none; }
+.demo-phone-hardware { pointer-events: none; }
+.demo-phone-speaker { position: absolute; z-index: 2; left: 50%; top: 5px; transform: translateX(-50%); width: 48px; height: 3px; border-radius: 3px; background: #080a0e; box-shadow: 0 1px 0 #ffffff20; }
+.demo-phone-button { position: absolute; width: 4px; left: -4px; border-radius: 3px 0 0 3px; background: linear-gradient(90deg, #353b45, #8b94a1 55%, #323943); box-shadow: -1px 0 1px #0f172a30; }
+.demo-phone-silent { top: 100px; height: 26px; }
+.demo-phone-volume-up { top: 151px; height: 51px; }
+.demo-phone-volume-down { top: 216px; height: 51px; }
+.demo-phone-power { top: 177px; height: 78px; left: auto; right: -4px; border-radius: 0 3px 3px 0; background: linear-gradient(90deg, #323943, #8b94a1 45%, #353b45); }
+.demo-phone-screen { position: relative; display: flex; flex-direction: column; width: 100%; height: 100%; min-height: 0; overflow: hidden; border: 2px solid #080a0e; border-radius: 40px; background: #fff; box-shadow: 0 0 0 1px #00000080; }
+.demo-phone-status { position: relative; display: flex; align-items: center; justify-content: space-between; flex: 0 0 45px; padding: 2px 20px 0; background: #fff; color: #111318; user-select: none; pointer-events: none; }
+.demo-phone-time { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 13px; font-weight: 700; letter-spacing: -0.4px; }
+.demo-phone-island { position: absolute; left: 50%; top: 7px; transform: translateX(-50%); width: 108px; height: 28px; border-radius: 20px; background: #06080c; box-shadow: inset 0 0 0 1px #ffffff0c; }
+.demo-phone-camera { position: absolute; right: 9px; top: 7px; width: 14px; height: 14px; border-radius: 50%; background: radial-gradient(circle at 40% 35%, #42618d 0%, #142d4d 18%, #080e1b 36%, #162338 48%, #080b11 65%); box-shadow: 0 0 0 2px #0d1016; }
+.demo-phone-indicators { display: flex; align-items: center; gap: 5px; }
+.demo-phone iframe { display: block; flex: 1 1 0; min-height: 0; width: 100%; border: 0; background: #fff; }
+.demo-phone-home { display: flex; align-items: center; justify-content: center; flex: 0 0 24px; background: #fff; pointer-events: none; }
+.demo-phone-home span { width: 116px; height: 5px; border-radius: 5px; background: #17191d; }
+.mobile-showcase-open { font-size: 13px; }
+.mobile-showcase-unavailable { padding: 24px 16px; font-size: 14px; line-height: 1.6; background: #fff; color: #475569; border-radius: 12px; }
+@media (max-width: 1000px) { .mobile-showcase { gap: 28px; padding: 28px 20px; } }
+@media (max-width: 760px) { .mobile-showcase { grid-template-columns: minmax(0, 1fr); } .mobile-showcase-copy { padding-top: 0; } .mobile-showcase h2 br { display: none; } .demo-phone { height: 740px; } }

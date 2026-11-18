@@ -33,6 +33,8 @@
     "recharts": "^2.15.4"
   },
   "scripts": {
+    "demo": "node scripts/start-demo.js",
+    "demo:local": "node scripts/start-demo.js --local-mobile",
     "postinstall": "node scripts/patch-material-table.js",
     "prestart": "node scripts/patch-material-table.js",
     "start": "react-scripts start",

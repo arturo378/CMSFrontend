@@ -46,6 +46,53 @@ Select **Reset demo data** to restore the sample records, refresh their dates, c
 
 Map tiles and the icon font use public internet services, even in demo mode.
 
+## Local mobile app showcase
+
+With dependencies installed in `CMSFrontend`, run:
+
+```sh
+npm run demo
+```
+
+- Open [the embedded mobile showcase](http://localhost:3000/mobile-demo).
+- Open [the hosted field app](https://cms-mobile-app.vercel.app/dashboard).
+- Press Ctrl+C in the launcher terminal to stop the frontend.
+
+The launcher enables frontend demo mode and embeds the hosted mobile app at
+`https://cms-mobile-app.vercel.app/dashboard`. Only port 3000 is needed; a local
+copy of CMSMobileApp is not required. The iframe and standalone link both use
+`REACT_APP_MOBILE_DEMO_URL`, which can override the default hosted URL. Restart
+the development server after changing this setting.
+
+To develop the mobile app locally too, place `CMSMobileApp` beside `CMSFrontend`,
+install dependencies in both, and run `npm run demo:local`. This starts both
+servers and embeds `http://localhost:5173` instead of the hosted app.
+
+In the sidebar, select **Mobile App Demo**. Create a shipping paper with different
+origin and destination warehouses, enter a truck number, and add a chemical
+quantity (for example, 100 gallons). Record a field delivery (for example, 25
+gallons), then close the shipment to return the remaining stock. The CMS shipping
+and delivery tables show the records created in the embedded app. GPS uses a
+sample Midland location without requesting access to the visitor's location.
+
+The iframe exchanges requests with this page through an origin- and
+window-checked demo bridge. The bridge uses the same browser-only demo API as
+the CMS, scopes requests to the selected client, and refreshes affected query
+caches. Resetting the shared demo starts a new mobile session, and switching
+clients keeps each client's in-progress shipment separate. **Reset demo** inside
+the embedded phone resets the shared CMS sample data too.
+
+The standalone field app has its own sample data. Its changes do not synchronize
+with CMSFrontend; use the embedded showcase to demonstrate the connected flow.
+
+Build CMSFrontend with `REACT_APP_DEMO_MODE=true` to publish the showcase. The
+hosted mobile app is the default iframe URL in both development and production;
+set `REACT_APP_MOBILE_DEMO_URL` to use a different deployment. The mobile app must
+be built with `npm run build:demo` for the shared demo bridge to work. Both hosts
+need SPA fallback routing. Allow the frontend origin to
+embed the mobile host if you configure framing restrictions. The CMS demo bridge
+requires no API server even when the two apps use different origins.
+
 ## Connecting a backend
 
 Create a `.env.local` file in the repository root:
@@ -67,16 +114,24 @@ Backend-connected deployments use the `user`, `admin`, and `superadmin` roles. T
 | --- | --- | --- |
 | `REACT_APP_DEMO_MODE` | `true` | Runs API operations locally and grants demo superadmin access. Set to `false` for backend authentication. |
 | `REACT_APP_API_URL` | `http://localhost:3001` | REST API base URL, used when demo mode is disabled. |
+| `REACT_APP_MOBILE_DEMO_URL` | `https://cms-mobile-app.vercel.app/dashboard` | Hosted mobile app used by the phone preview and standalone link. |
 | `PUBLIC_URL` | `.` | Base path for generated static assets. |
 | `GENERATE_SOURCEMAP` | `false` | Controls source map generation for production builds. |
 
 Use `.env.local` for local overrides; it is excluded from version control. Configuration is read when the development server starts or the production bundle is built. Restart or rebuild after changing it.
+
+The tracked `.env` contains public frontend defaults only. Do not add passwords,
+private keys, or backend secrets: `REACT_APP_*` settings are included in the
+browser bundle. Keep machine-specific settings in ignored `.env.local`, and
+configure deployment-specific values through your hosting service.
 
 ## Development
 
 | Command | Purpose |
 | --- | --- |
 | `npm start` | Starts the development server with automatic reload. |
+| `npm run demo` | Starts the CMS demo with the hosted mobile app embedded. |
+| `npm run demo:local` | Starts both CMSFrontend and the sibling CMSMobileApp locally. |
 | `npm test` | Runs tests in interactive watch mode. |
 | `npm test -- --watchAll=false --runInBand` | Runs the test suite once. |
 | `npm run build` | Creates the production bundle in `build/`. |
